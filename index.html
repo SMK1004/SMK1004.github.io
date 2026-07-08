@@ -35,7 +35,7 @@
   .wrap{ max-width: 960px; margin: 0 auto; }
   header{ margin-bottom: 28px; padding-bottom: 22px; border-bottom: 1px solid var(--line-soft); }
   header .eyebrow{
-    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    font-family: var(--mono); font-size: 19.5px; letter-spacing: 0.18em;
     color: var(--brass); text-transform: uppercase; margin-bottom: 10px;
     display:flex; align-items:center; gap:8px;
   }
@@ -44,30 +44,30 @@
     box-shadow: 0 0 8px var(--brass);
   }
   header h1{
-    font-family: var(--serif); font-size: 30px; margin: 0 0 6px; font-weight: 500;
+    font-family: var(--serif); font-size: 54px; margin: 0 0 6px; font-weight: 500;
     letter-spacing: -0.01em; color: #f4f1ea;
   }
-  header p{ margin:0; color: var(--sub); font-size: 13.5px; max-width: 560px; line-height:1.5; }
+  header p{ margin:0; color: var(--sub); font-size: 24px; max-width: 620px; line-height:1.55; }
 
   .card{
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
     padding: 20px;
   }
   .card h2{
-    font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 20.2px; text-transform: uppercase; letter-spacing: 0.12em;
     color: var(--sub); margin: 0 0 14px; font-weight: 600;
     font-family: var(--mono);
   }
   textarea{
     width:100%; min-height: 200px; background: var(--bg); color: var(--text);
     border: 1px solid var(--line); border-radius: 8px; padding: 14px;
-    font-family: var(--mono); font-size: 12.5px; line-height:1.7; resize: vertical;
+    font-family: var(--mono); font-size: 22.5px; line-height:1.7; resize: vertical;
   }
   textarea:focus, input:focus, select:focus{ outline: none; border-color: var(--brass-dim) !important; }
   button{
-    font-family: var(--sans); font-weight: 600; font-size: 13px;
+    font-family: var(--sans); font-weight: 600; font-size: 22.5px;
     border-radius: 7px; border: 1px solid var(--line); cursor:pointer;
-    padding: 10px 18px; background: var(--panel2); color: var(--text);
+    padding: 13px 22px; background: var(--panel2); color: var(--text);
     transition: all .15s ease;
   }
   button:hover{ border-color: var(--brass-dim); color: var(--brass); }
@@ -78,7 +78,7 @@
   .positions{ display:grid; gap: 16px; margin-top: 20px; }
   .pos-block{ background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
   .pos-title{
-    font-family: var(--serif); font-size: 17px; color: var(--brass); margin-bottom: 14px;
+    font-family: var(--serif); font-size: 30px; color: var(--brass); margin-bottom: 14px;
     letter-spacing: 0.01em; display:flex; align-items:center; gap:10px;
   }
   .pos-title::after{ content:''; flex:1; height:1px; background: var(--line-soft); }
@@ -88,73 +88,73 @@
     padding: 16px; margin-bottom: 12px;
   }
   .exch-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  .exch-name{ font-weight:600; font-size: 14.5px; letter-spacing: 0.01em; }
-  .exch-name .uid-tag{ color: var(--sub2); font-family: var(--mono); font-size: 10.5px; margin-left:6px; }
+  .exch-name{ font-weight:600; font-size: 25.5px; letter-spacing: 0.01em; }
+  .exch-name .uid-tag{ color: var(--sub2); font-family: var(--mono); font-size: 18.8px; margin-left:6px; }
   .dir-badge{
-    font-family: var(--mono); font-size: 10.5px; padding: 3px 10px; border-radius: 3px;
+    font-family: var(--mono); font-size: 18.8px; padding: 3px 10px; border-radius: 3px;
     font-weight:700; letter-spacing: 0.06em;
   }
   .dir-long{ background: rgba(79,174,156,0.12); color: var(--long); border: 1px solid rgba(79,174,156,0.3); }
   .dir-short{ background: rgba(193,89,74,0.12); color: var(--short); border: 1px solid rgba(193,89,74,0.3); }
 
-  .fields{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; font-family: var(--mono); font-size: 12.5px; }
+  .fields{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; font-family: var(--mono); font-size: 22.5px; }
   .fields .f{ display:flex; flex-direction:column; gap:4px; }
-  .fields label{ color: var(--sub2); font-size: 10px; text-transform:uppercase; letter-spacing:.06em; font-family: var(--sans); font-weight:600; }
+  .fields label{ color: var(--sub2); font-size: 17.2px; text-transform:uppercase; letter-spacing:.06em; font-family: var(--sans); font-weight:600; }
   .fields input, .fields select{
     background: var(--bg); border:1px solid var(--line); border-radius:6px; color:var(--text);
-    padding: 7px 9px; font-family: var(--mono); font-size: 12.5px;
+    padding: 13px 15px; font-family: var(--mono); font-size: 22.5px;
   }
 
   .action-row{ margin-top:12px; padding-top:12px; border-top: 1px solid var(--line-soft); display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
   .action-row .f{ display:flex; flex-direction:column; gap:4px; }
-  .action-row label{ color: var(--sub2); font-size: 10px; text-transform:uppercase; letter-spacing:.06em; font-family: var(--sans); font-weight:600;}
+  .action-row label{ color: var(--sub2); font-size: 17.2px; text-transform:uppercase; letter-spacing:.06em; font-family: var(--sans); font-weight:600;}
   .action-row select, .action-row input{
     background: var(--bg); border:1px solid var(--line); border-radius:6px; color:var(--text);
-    padding: 8px 10px; font-family: var(--mono); font-size:12.5px;
+    padding: 14px 16px; font-family: var(--mono); font-size:22.5px;
   }
 
   .result{
     margin-top:12px; background: var(--bg); border: 1px solid var(--line);
     border-left: 3px solid var(--brass);
-    border-radius: 8px; padding: 14px 16px; font-family: var(--mono); font-size: 13px;
+    border-radius: 8px; padding: 14px 16px; font-family: var(--mono); font-size: 23.2px;
     display:none;
   }
   .result.show{ display:block; }
   .result .rline{ display:flex; justify-content:space-between; padding: 4px 0; }
-  .result .rline span:first-child{ color: var(--sub); font-size:12px; }
+  .result .rline span:first-child{ color: var(--sub); font-size:21px; }
   .result .rline span:last-child{ font-weight:600; }
 
   .gauge-wrap{ display:flex; align-items:center; gap:12px; margin-top:10px; }
   .gauge{ flex:1; height: 5px; background: var(--line); border-radius: 3px; overflow:hidden; }
   .gauge-fill{ height:100%; background: linear-gradient(90deg, var(--long), var(--brass), var(--short)); }
-  .gauge-label{ font-size:11px; color: var(--sub); white-space:nowrap; font-family: var(--mono); }
+  .gauge-label{ font-size:19.5px; color: var(--sub); white-space:nowrap; font-family: var(--mono); }
 
-  .formula{ margin-top:10px; font-size:11.5px; color: var(--sub); display:none; white-space:pre-wrap; line-height:1.6; }
+  .formula{ margin-top:10px; font-size:19.5px; color: var(--sub); display:none; white-space:pre-wrap; line-height:1.6; }
   .formula.show{ display:block; }
 
   .toast{
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
     background: var(--panel2); border:1px solid var(--brass); color:var(--text);
-    padding: 11px 20px; border-radius:8px; font-size:13px; opacity:0; pointer-events:none;
+    padding: 11px 20px; border-radius:8px; font-size:22.5px; opacity:0; pointer-events:none;
     transition: opacity .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }
   .toast.show{ opacity:1; }
 
-  .empty{ color: var(--sub2); font-size: 13px; text-align:center; padding: 32px 0; font-family: var(--mono); }
-  .footnote{ font-size: 11px; color: var(--sub2); margin-top: 24px; line-height:1.7; padding-top:16px; border-top: 1px solid var(--line-soft); }
+  .empty{ color: var(--sub2); font-size: 22.5px; text-align:center; padding: 32px 0; font-family: var(--mono); }
+  .footnote{ font-size: 19.5px; color: var(--sub2); margin-top: 24px; line-height:1.7; padding-top:16px; border-top: 1px solid var(--line-soft); }
 
   @media(max-width: 640px){
     body{ padding: 20px 14px 60px; }
-    header h1{ font-size: 22px; }
+    header h1{ font-size: 33px; }
     .fields{ grid-template-columns: 1fr; }
     .action-row{ flex-direction: column; align-items: stretch; }
     .action-row .f{ width:100%; }
-    .action-row select, .action-row input{ width:100%; font-size: 14px; padding: 10px; }
-    .action-row button{ width:100%; padding: 12px; font-size: 14px; }
+    .action-row select, .action-row input{ width:100%; font-size: 24px; padding: 15px; }
+    .action-row button{ width:100%; padding: 17px; font-size: 24px; }
     .row button{ flex:1; padding: 12px; }
-    .exch-name{ font-size: 15px; }
-    .result{ font-size: 14px; }
-    textarea{ font-size: 13px; }
+    .exch-name{ font-size: 27px; }
+    .result{ font-size: 24px; }
+    textarea{ font-size: 22.5px; }
   }
 </style>
 </head>
@@ -163,15 +163,14 @@
   <header>
     <div class="eyebrow">BTC · USDT-M · Cross 50x · Tier 1 MMR</div>
     <h1>BTC Futures Professional Agent</h1>
-    <p>포지션 텍스트를 붙여넣으면 자동 파싱합니다. 청산가·평단·수수료는 거래소 실제 계산 방식을 근사해 산출합니다.</p>
   </header>
 
   <div class="card" id="priceCard">
     <h2>실시간 가격</h2>
     <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;">
-      <div id="livePrice" style="font-family:var(--serif); font-size:34px; color:var(--brass); font-weight:500;">-</div>
-      <div id="priceSource" style="font-family:var(--mono); font-size:11px; color:var(--sub2);"></div>
-      <button onclick="fetchPrice()" style="margin-left:auto; padding:7px 14px; font-size:12px;">새로고침</button>
+      <div id="livePrice" style="font-family:var(--serif); font-size:60px; color:var(--brass); font-weight:500;">-</div>
+      <div id="priceSource" style="font-family:var(--mono); font-size:19.5px; color:var(--sub2);"></div>
+      <button onclick="fetchPrice()" style="margin-left:auto; padding:9px 16px; font-size:21px;">새로고침</button>
     </div>
     <div style="margin-top:16px; border-radius:8px; overflow:hidden; border:1px solid var(--line);">
       <div class="tradingview-widget-container">
@@ -182,27 +181,14 @@
 
   <div class="card" style="margin-top:16px;">
     <h2>포지션 입력</h2>
-    <textarea id="rawInput" placeholder="용1
-비트유닉스
-UID : 579219127
-롱
-충 : 10000
-평단 : 62772
-TP : 64130 (1000) 1000
-청산 : 49388
-
-용2
-디지파이넥스
-UID : 1746516010
-숏
-충 : 33000
-평단 : 60806
-TP : 60710 (350) 4342+2000
-청산 : 66771"></textarea>
+    <p style="margin:0 0 14px; color:var(--sub); font-size:16px; line-height:1.6;">
+      텔레그램 순환TP 방에 공유해두신 본인 포지션을 그대로 복사해서<br>
+      아래 칸에 붙여넣고 "파싱하기" 버튼만 누르시면 됩니다.
+    </p>
+    <textarea id="rawInput" placeholder="여기에 텔레그램에 공유한 포지션 텍스트를 그대로 붙여넣으세요"></textarea>
     <div class="row">
       <button class="primary" onclick="parsePositions()">파싱하기</button>
-      <button onclick="loadSample()">예시 불러오기</button>
-      <span id="parseMsg" style="font-family:var(--mono);font-size:12px;color:var(--sub);"></span>
+      <span id="parseMsg" style="font-family:var(--mono);font-size:21px;color:var(--sub);"></span>
     </div>
   </div>
 
@@ -238,7 +224,7 @@ TP : 60710 (350) 4342+2000
       "gridColor": "rgba(38,43,49,0.5)"
     });
   }catch(e){
-    document.getElementById('tv_chart').innerHTML = '<div style="padding:20px;color:var(--sub);font-size:12px;">차트를 불러올 수 없습니다 (네트워크 또는 광고차단 확장 확인)</div>';
+    document.getElementById('tv_chart').innerHTML = '<div style="padding:20px;color:var(--sub);font-size:18px;">차트를 불러올 수 없습니다 (네트워크 또는 광고차단 확장 확인)</div>';
   }
 </script>
 
@@ -329,27 +315,6 @@ function fetchPrice(){
 
 connectBitgetWS();
 startRestFallback(); // WS 연결 확인 전까지 임시로 REST도 같이 시작 (연결되면 자동 중지)
-
-function loadSample(){
-  document.getElementById('rawInput').value =
-`용1
-비트유닉스
-UID : 579219127
-롱
-충 : 10000
-평단 : 62772
-TP : 64130 (1000) 1000
-청산 : 49388
-
-용2
-디지파이넥스
-UID : 1746516010
-숏
-충 : 33000
-평단 : 60806
-TP : 60710 (350) 4342+2000
-청산 : 66771`;
-}
 
 function sumPlus(str){
   if(!str) return 0;
