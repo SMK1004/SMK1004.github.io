@@ -143,6 +143,41 @@
   .empty{ color: var(--sub2); font-size: 22.5px; text-align:center; padding: 32px 0; font-family: var(--mono); }
   .footnote{ font-size: 19.5px; color: var(--sub2); margin-top: 24px; line-height:1.7; padding-top:16px; border-top: 1px solid var(--line-soft); }
 
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background: rgba(0,0,0,0.6);
+    align-items:center; justify-content:center; z-index: 999;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-box{
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px; width: 300px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;
+    font-family: var(--serif); font-size: 20px; color: var(--brass);
+  }
+  .modal-x{ background:none; border:none; color: var(--sub); font-size: 20px; padding: 2px 8px; cursor:pointer; }
+  .modal-x:hover{ color: var(--short); border-color: transparent; }
+  .calc-display{
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 16px; text-align:right; font-family: var(--mono); font-size: 28px;
+    margin-bottom: 12px; overflow-x:auto; white-space:nowrap;
+  }
+  .calc-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .calc-btn{
+    padding: 16px 0; font-size: 18px; font-family: var(--mono); font-weight:600;
+    background: var(--panel2); border:1px solid var(--line); border-radius:8px; color:var(--text); cursor:pointer;
+  }
+  .calc-btn:hover{ border-color: var(--brass-dim); }
+  .calc-op{ color: var(--brass); }
+  .calc-eq{ background: var(--brass); color:#14100a; }
+  .notepad-area{
+    width:100%; min-height: 260px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+    font-family: var(--mono); font-size: 15px; line-height:1.6; resize: vertical;
+  }
+  .tool-buttons{ margin-left:auto; display:flex; gap:8px; }
+
   @media(max-width: 640px){
     body{ padding: 20px 14px 60px; }
     header h1{ font-size: 33px; }
@@ -152,6 +187,8 @@
     .action-row select, .action-row input{ width:100%; font-size: 24px; padding: 15px; }
     .action-row button{ width:100%; padding: 17px; font-size: 24px; }
     .row button{ flex:1; padding: 12px; }
+    .tool-buttons{ margin-left:0; width:100%; }
+    .tool-buttons button{ flex:1; }
     .exch-name{ font-size: 27px; }
     .result{ font-size: 24px; }
     textarea{ font-size: 22.5px; }
@@ -188,6 +225,7 @@
     <textarea id="rawInput" placeholder="여기에 텔레그램에 공유한 포지션 텍스트를 그대로 붙여넣으세요"></textarea>
     <div class="row">
       <button class="primary" onclick="parsePositions()">파싱하기</button>
+      <button onclick="resetAll()">초기화</button>
       <span id="parseMsg" style="font-family:var(--mono);font-size:21px;color:var(--sub);"></span>
     </div>
   </div>
@@ -203,6 +241,45 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="calcModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>계산기</span><button class="modal-x" onclick="closeModal('calcModal')">✕</button></div>
+    <div class="calc-display" id="calcDisplay">0</div>
+    <div class="calc-grid">
+      <button class="calc-btn calc-op" onclick="calcClear()">C</button>
+      <button class="calc-btn calc-op" onclick="calcBackspace()">⌫</button>
+      <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
+      <button class="calc-btn calc-op" onclick="calcInput('/')">÷</button>
+
+      <button class="calc-btn" onclick="calcInput('7')">7</button>
+      <button class="calc-btn" onclick="calcInput('8')">8</button>
+      <button class="calc-btn" onclick="calcInput('9')">9</button>
+      <button class="calc-btn calc-op" onclick="calcInput('*')">×</button>
+
+      <button class="calc-btn" onclick="calcInput('4')">4</button>
+      <button class="calc-btn" onclick="calcInput('5')">5</button>
+      <button class="calc-btn" onclick="calcInput('6')">6</button>
+      <button class="calc-btn calc-op" onclick="calcInput('-')">−</button>
+
+      <button class="calc-btn" onclick="calcInput('1')">1</button>
+      <button class="calc-btn" onclick="calcInput('2')">2</button>
+      <button class="calc-btn" onclick="calcInput('3')">3</button>
+      <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
+
+      <button class="calc-btn" onclick="calcInput('0')" style="grid-column:span 2;">0</button>
+      <button class="calc-btn" onclick="calcInput('.')">.</button>
+      <button class="calc-btn calc-eq" onclick="calcEquals()">=</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="notepadModal">
+  <div class="modal-box">
+    <div class="modal-head"><span>메모장</span><button class="modal-x" onclick="closeModal('notepadModal')">✕</button></div>
+    <textarea id="notepadArea" class="notepad-area" placeholder="메모를 입력하세요 (브라우저에만 저장됩니다)"></textarea>
+  </div>
+</div>
 
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script>
@@ -462,6 +539,10 @@ function renderPositions(){
           </div>
           <button onclick="calculate('${id}')">계산</button>
           <button onclick="toggleFormula('${id}')">계산식</button>
+          <div class="tool-buttons">
+            <button onclick="openCalcTool()" title="계산기">🖩 계산기</button>
+            <button onclick="openNotepad()" title="메모장">📝 메모장</button>
+          </div>
         </div>
         <div class="result" id="result_${id}"></div>
         <div class="formula" id="formula_${id}"></div>
@@ -531,8 +612,8 @@ function calculate(id){
 
   resultBox.classList.add('show');
   resultBox.innerHTML = `
-    <div class="rline"><span>변경 평단</span><span>${fmt(newAvg,1)} USDT</span></div>
-    <div class="rline"><span>변경 청산가</span><span>${fmt(newLiq,1)} USDT</span></div>
+    <div class="rline"><span>변경 평단</span><span style="color:#4ade80;">${fmt(newAvg,1)} USDT</span></div>
+    <div class="rline"><span>변경 청산가</span><span style="color:#f87171;">${fmt(newLiq,1)} USDT</span></div>
     <div class="rline"><span>총 증거금</span><span>${fmt(newMargin,1)} USDT</span></div>
     <div class="rline"><span>사용 증거금(포지션 진입금액)</span><span>${fmt(newUsedMargin,1)} USDT</span></div>
     ${action==='add_position' ? `<div class="rline"><span>추가 진입 수수료(근사)</span><span>${fmt(entryFee,2)} USDT</span></div>` : ''}
@@ -559,6 +640,102 @@ function toast(msg){
   t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'), 2200);
 }
+
+function resetAll(){
+  document.getElementById('rawInput').value = '';
+  document.getElementById('parseMsg').textContent = '';
+  STATE = { yong1: [], yong2: [] };
+  renderPositions();
+  toast('초기화되었습니다');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function openCalcTool(){ openModal('calcModal'); }
+function openNotepad(){
+  openModal('notepadModal');
+  try{
+    const saved = localStorage.getItem('btc_agent_notepad');
+    if(saved !== null) document.getElementById('notepadArea').value = saved;
+  }catch(e){}
+}
+document.addEventListener('input', (e)=>{
+  if(e.target && e.target.id === 'notepadArea'){
+    try{ localStorage.setItem('btc_agent_notepad', e.target.value); }catch(err){}
+  }
+});
+
+// 간단한 4칙연산 계산기 (eval 미사용, 안전한 상태 기반 구현)
+let calcState = { current: '0', prevValue: null, operator: null, waitingForNew: false };
+function calcRender(){ document.getElementById('calcDisplay').textContent = calcState.current; }
+function calcClear(){ calcState = { current: '0', prevValue: null, operator: null, waitingForNew: false }; calcRender(); }
+function calcBackspace(){
+  if(calcState.waitingForNew) return;
+  calcState.current = calcState.current.length>1 ? calcState.current.slice(0,-1) : '0';
+  calcRender();
+}
+function calcInput(val){
+  if(['+','-','*','/'].includes(val)){
+    if(calcState.operator && !calcState.waitingForNew){ calcEquals(); }
+    calcState.prevValue = parseFloat(calcState.current);
+    calcState.operator = val;
+    calcState.waitingForNew = true;
+    return;
+  }
+  if(val === '%'){
+    calcState.current = String(parseFloat(calcState.current)/100);
+    calcRender();
+    return;
+  }
+  if(val === '.'){
+    if(calcState.waitingForNew){ calcState.current = '0.'; calcState.waitingForNew=false; calcRender(); return; }
+    if(!calcState.current.includes('.')) calcState.current += '.';
+    calcRender();
+    return;
+  }
+  if(calcState.waitingForNew){
+    calcState.current = val;
+    calcState.waitingForNew = false;
+  } else {
+    calcState.current = calcState.current === '0' ? val : calcState.current + val;
+  }
+  calcRender();
+}
+function calcEquals(){
+  if(calcState.operator === null || calcState.prevValue === null) return;
+  const a = calcState.prevValue;
+  const b = parseFloat(calcState.current);
+  let result = 0;
+  switch(calcState.operator){
+    case '+': result = a+b; break;
+    case '-': result = a-b; break;
+    case '*': result = a*b; break;
+    case '/': result = b!==0 ? a/b : NaN; break;
+  }
+  calcState.current = String(Math.round(result*1e8)/1e8);
+  calcState.operator = null;
+  calcState.prevValue = null;
+  calcState.waitingForNew = true;
+  calcRender();
+}
+calcRender();
+
+document.addEventListener('keydown', (e)=>{
+  const calcOpen = document.getElementById('calcModal').classList.contains('show');
+  if(!calcOpen) return;
+
+  if(e.key >= '0' && e.key <= '9'){ calcInput(e.key); e.preventDefault(); return; }
+  if(e.key === '.' || e.key === ','){ calcInput('.'); e.preventDefault(); return; }
+  if(e.key === '+'){ calcInput('+'); e.preventDefault(); return; }
+  if(e.key === '-'){ calcInput('-'); e.preventDefault(); return; }
+  if(e.key === '*'){ calcInput('*'); e.preventDefault(); return; }
+  if(e.key === '/'){ calcInput('/'); e.preventDefault(); return; }
+  if(e.key === '%'){ calcInput('%'); e.preventDefault(); return; }
+  if(e.key === 'Enter' || e.key === '='){ calcEquals(); e.preventDefault(); return; }
+  if(e.key === 'Backspace'){ calcBackspace(); e.preventDefault(); return; }
+  if(e.key === 'Escape'){ closeModal('calcModal'); e.preventDefault(); return; }
+  if(e.key.toLowerCase() === 'c'){ calcClear(); e.preventDefault(); return; }
+});
 </script>
 </body>
 </html>
