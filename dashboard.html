@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Dashboard · B헤지</title>
+<title>마켓 대시보드 · B헤지</title>
 <style>
   :root{
     --bg:#0a0d12;
@@ -15,8 +15,8 @@
     --long:#00d4aa;
     --short:#ff5c66;
     --amber:#ffb545;
-    --mono: 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
-    --sans: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+    --mono: 'Pretendard', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', sans-serif;
   }
   *{box-sizing:border-box;}
   body{
@@ -24,8 +24,10 @@
     background:var(--bg);
     color:var(--text);
     font-family:var(--sans);
+    letter-spacing: -0.01em;
     -webkit-font-smoothing:antialiased;
   }
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css');
   header{
     padding:20px 24px 16px;
     border-bottom:1px solid var(--line);
@@ -152,7 +154,11 @@
 <body>
 
 <header>
-  <h1>Market <span>Dashboard</span></h1>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <a href="index.html" style="color:var(--muted); text-decoration:none; font-size:13px;">🏠 홈</a>
+    <a href="calculator.html" style="color:var(--muted); text-decoration:none; font-size:13px;">🧮 계산기</a>
+    <h1 style="margin-left:8px;">마켓 <span>대시보드</span></h1>
+  </div>
   <div class="clock" id="clock">--:--:--</div>
 </header>
 
