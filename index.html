@@ -3,739 +3,306 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BTC Futures Agent</title>
+<title>Market Dashboard · B헤지</title>
 <style>
   :root{
-    --bg: #0e1013;
-    --panel: #15181c;
-    --panel2: #1a1e23;
-    --line: #262b31;
-    --line-soft: #1e2328;
-    --text: #eceff1;
-    --sub: #838d97;
-    --sub2: #5c656e;
-    --brass: #c9a466;
-    --brass-dim: #8a7247;
-    --long: #4fae9c;
-    --short: #c1594a;
-    --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
-    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
-    --serif: 'Fraunces', Georgia, serif;
+    --bg:#0a0d12;
+    --panel:#12161d;
+    --panel-2:#171c25;
+    --line:#232a36;
+    --text:#e7ebf0;
+    --muted:#7c8798;
+    --long:#00d4aa;
+    --short:#ff5c66;
+    --amber:#ffb545;
+    --mono: 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
+    --sans: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   }
-  * { box-sizing: border-box; }
+  *{box-sizing:border-box;}
   body{
-    margin:0; background:var(--bg); color:var(--text);
-    font-family: var(--sans);
-    padding: 40px 20px 70px;
-    background-image:
-      radial-gradient(ellipse 900px 400px at 50% -10%, rgba(201,164,102,0.05), transparent);
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
   }
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap');
-
-  .wrap{ max-width: 960px; margin: 0 auto; }
-  header{ margin-bottom: 28px; padding-bottom: 22px; border-bottom: 1px solid var(--line-soft); }
-  header .eyebrow{
-    font-family: var(--mono); font-size: 19.5px; letter-spacing: 0.18em;
-    color: var(--brass); text-transform: uppercase; margin-bottom: 10px;
-    display:flex; align-items:center; gap:8px;
-  }
-  header .eyebrow::before{
-    content:''; width:6px; height:6px; border-radius:50%; background: var(--brass);
-    box-shadow: 0 0 8px var(--brass);
+  header{
+    padding:20px 24px 16px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
   }
   header h1{
-    font-family: var(--serif); font-size: 54px; margin: 0 0 6px; font-weight: 500;
-    letter-spacing: -0.01em; color: #f4f1ea;
+    font-size:18px;
+    margin:0;
+    letter-spacing:0.02em;
+    font-weight:600;
   }
-  header p{ margin:0; color: var(--sub); font-size: 24px; max-width: 620px; line-height:1.55; }
-
+  header h1 span{color:var(--long);}
+  header .clock{
+    font-family:var(--mono);
+    color:var(--muted);
+    font-size:13px;
+  }
+  main{
+    max-width:1280px;
+    margin:0 auto;
+    padding:20px;
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:16px;
+  }
   .card{
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-    padding: 20px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
   }
-  .card h2{
-    font-size: 20.2px; text-transform: uppercase; letter-spacing: 0.12em;
-    color: var(--sub); margin: 0 0 14px; font-weight: 600;
-    font-family: var(--mono);
+  .card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel-2);
   }
-  textarea{
-    width:100%; min-height: 200px; background: var(--bg); color: var(--text);
-    border: 1px solid var(--line); border-radius: 8px; padding: 14px;
-    font-family: var(--mono); font-size: 22.5px; line-height:1.7; resize: vertical;
+  .card-head h2{
+    font-size:13px;
+    margin:0;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--muted);
+    font-weight:600;
   }
-  textarea:focus, input:focus, select:focus{ outline: none; border-color: var(--brass-dim) !important; }
-  button{
-    font-family: var(--sans); font-weight: 600; font-size: 22.5px;
-    border-radius: 7px; border: 1px solid var(--line); cursor:pointer;
-    padding: 13px 22px; background: var(--panel2); color: var(--text);
-    transition: all .15s ease;
-  }
-  button:hover{ border-color: var(--brass-dim); color: var(--brass); }
-  button.primary{ background: var(--brass); color:#14100a; border-color: var(--brass); font-weight:700; }
-  button.primary:hover{ filter: brightness(1.1); color:#14100a; }
-  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+  .card-body{padding:16px;}
 
-  .positions{ display:grid; gap: 16px; margin-top: 20px; }
-  .pos-block{ background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
-  .pos-title{
-    font-family: var(--serif); font-size: 30px; color: var(--brass); margin-bottom: 14px;
-    letter-spacing: 0.01em; display:flex; align-items:center; gap:10px;
+  /* AI briefing */
+  #briefing .card-body{min-height:64px;}
+  .briefing-empty{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.7;
   }
-  .pos-title::after{ content:''; flex:1; height:1px; background: var(--line-soft); }
+  .briefing-text{
+    font-size:14px;
+    line-height:1.8;
+    white-space:pre-wrap;
+  }
+  .btn{
+    background:var(--long);
+    color:#04140f;
+    border:none;
+    border-radius:6px;
+    padding:8px 14px;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    font-family:var(--sans);
+  }
+  .btn:disabled{opacity:0.5; cursor:default;}
+  .btn.secondary{
+    background:transparent;
+    color:var(--muted);
+    border:1px solid var(--line);
+  }
+  .meta-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .timestamp{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--muted);
+  }
 
-  .exch-card{
-    background: var(--panel2); border: 1px solid var(--line); border-radius: 10px;
-    padding: 16px; margin-bottom: 12px;
+  /* grid split for calendar/news */
+  .split{
+    display:grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap:16px;
   }
-  .exch-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
-  .exch-name{ font-weight:600; font-size: 25.5px; letter-spacing: 0.01em; }
-  .exch-name .uid-tag{ color: var(--sub2); font-family: var(--mono); font-size: 18.8px; margin-left:6px; }
-  .dir-badge{
-    font-family: var(--mono); font-size: 18.8px; padding: 3px 10px; border-radius: 3px;
-    font-weight:700; letter-spacing: 0.06em;
-  }
-  .dir-long{ background: rgba(79,174,156,0.12); color: var(--long); border: 1px solid rgba(79,174,156,0.3); }
-  .dir-short{ background: rgba(193,89,74,0.12); color: var(--short); border: 1px solid rgba(193,89,74,0.3); }
-
-  .fields{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 10px 14px; font-family: var(--mono); font-size: 22.5px; }
-  .fields .f{ display:flex; flex-direction:column; gap:4px; }
-  .fields label{ color: var(--sub2); font-size: 17.2px; text-transform:uppercase; letter-spacing:.06em; font-family: var(--sans); font-weight:600; }
-  .fields input, .fields select{
-    background: var(--bg); border:1px solid var(--line); border-radius:6px; color:var(--text);
-    padding: 13px 15px; font-family: var(--mono); font-size: 22.5px;
+  @media (max-width:900px){
+    .split{grid-template-columns:1fr;}
   }
 
-  .action-row{ margin-top:12px; padding-top:12px; border-top: 1px solid var(--line-soft); display:flex; gap:10px; flex-wrap:wrap; align-items:end; }
-  .action-row .f{ display:flex; flex-direction:column; gap:4px; }
-  .action-row label{ color: var(--sub2); font-size: 17.2px; text-transform:uppercase; letter-spacing:.06em; font-family: var(--sans); font-weight:600;}
-  .action-row select, .action-row input{
-    background: var(--bg); border:1px solid var(--line); border-radius:6px; color:var(--text);
-    padding: 14px 16px; font-family: var(--mono); font-size:22.5px;
+  .tv-embed{height:520px;}
+  .tv-embed iframe{border:0;}
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:11px;
+    padding:24px;
   }
 
-  .result{
-    margin-top:12px; background: var(--bg); border: 1px solid var(--line);
-    border-left: 3px solid var(--brass);
-    border-radius: 8px; padding: 14px 16px; font-family: var(--mono); font-size: 23.2px;
-    display:none;
+  .dot{
+    display:inline-block;
+    width:7px;height:7px;border-radius:50%;
+    margin-right:6px;
   }
-  .result.show{ display:block; }
-  .result .rline{ display:flex; justify-content:space-between; padding: 4px 0; }
-  .result .rline span:first-child{ color: var(--sub); font-size:21px; }
-  .result .rline span:last-child{ font-weight:600; }
-
-  .gauge-wrap{ display:flex; align-items:center; gap:12px; margin-top:10px; }
-  .gauge{ flex:1; height: 5px; background: var(--line); border-radius: 3px; overflow:hidden; }
-  .gauge-fill{ height:100%; background: linear-gradient(90deg, var(--long), var(--brass), var(--short)); }
-  .gauge-label{ font-size:19.5px; color: var(--sub); white-space:nowrap; font-family: var(--mono); }
-
-  .formula{ margin-top:10px; font-size:19.5px; color: var(--sub); display:none; white-space:pre-wrap; line-height:1.6; }
-  .formula.show{ display:block; }
-
-  .toast{
-    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
-    background: var(--panel2); border:1px solid var(--brass); color:var(--text);
-    padding: 11px 20px; border-radius:8px; font-size:22.5px; opacity:0; pointer-events:none;
-    transition: opacity .2s ease; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-  }
-  .toast.show{ opacity:1; }
-
-  .empty{ color: var(--sub2); font-size: 22.5px; text-align:center; padding: 32px 0; font-family: var(--mono); }
-  .footnote{ font-size: 19.5px; color: var(--sub2); margin-top: 24px; line-height:1.7; padding-top:16px; border-top: 1px solid var(--line-soft); }
-
-  .modal-overlay{
-    display:none; position:fixed; inset:0; background: rgba(0,0,0,0.6);
-    align-items:center; justify-content:center; z-index: 999;
-  }
-  .modal-overlay.show{ display:flex; }
-  .modal-box{
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-    padding: 18px; width: 300px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .modal-head{
-    display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;
-    font-family: var(--serif); font-size: 20px; color: var(--brass);
-  }
-  .modal-x{ background:none; border:none; color: var(--sub); font-size: 20px; padding: 2px 8px; cursor:pointer; }
-  .modal-x:hover{ color: var(--short); border-color: transparent; }
-  .calc-display{
-    background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
-    padding: 16px; text-align:right; font-family: var(--mono); font-size: 28px;
-    margin-bottom: 12px; overflow-x:auto; white-space:nowrap;
-  }
-  .calc-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .calc-btn{
-    padding: 16px 0; font-size: 18px; font-family: var(--mono); font-weight:600;
-    background: var(--panel2); border:1px solid var(--line); border-radius:8px; color:var(--text); cursor:pointer;
-  }
-  .calc-btn:hover{ border-color: var(--brass-dim); }
-  .calc-op{ color: var(--brass); }
-  .calc-eq{ background: var(--brass); color:#14100a; }
-  .notepad-area{
-    width:100%; min-height: 260px; background: var(--bg); color: var(--text);
-    border: 1px solid var(--line); border-radius: 8px; padding: 12px;
-    font-family: var(--mono); font-size: 15px; line-height:1.6; resize: vertical;
-  }
-  .tool-buttons{ margin-left:auto; display:flex; gap:8px; }
-
-  @media(max-width: 640px){
-    body{ padding: 20px 14px 60px; }
-    header h1{ font-size: 33px; }
-    .fields{ grid-template-columns: 1fr; }
-    .action-row{ flex-direction: column; align-items: stretch; }
-    .action-row .f{ width:100%; }
-    .action-row select, .action-row input{ width:100%; font-size: 24px; padding: 15px; }
-    .action-row button{ width:100%; padding: 17px; font-size: 24px; }
-    .row button{ flex:1; padding: 12px; }
-    .tool-buttons{ margin-left:0; width:100%; }
-    .tool-buttons button{ flex:1; }
-    .exch-name{ font-size: 27px; }
-    .result{ font-size: 24px; }
-    textarea{ font-size: 22.5px; }
-  }
+  .dot.high{background:var(--short);}
+  .dot.mid{background:var(--amber);}
+  .dot.low{background:var(--muted);}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="eyebrow">BTC · USDT-M · Cross 50x · Tier 1 MMR</div>
-    <h1>BTC Futures Professional Agent</h1>
-  </header>
 
-  <div class="card" id="priceCard">
-    <h2>실시간 가격</h2>
-    <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;">
-      <div id="livePrice" style="font-family:var(--serif); font-size:60px; color:var(--brass); font-weight:500;">-</div>
-      <div id="priceSource" style="font-family:var(--mono); font-size:19.5px; color:var(--sub2);"></div>
-      <button onclick="fetchPrice()" style="margin-left:auto; padding:9px 16px; font-size:21px;">새로고침</button>
-    </div>
-    <div style="margin-top:16px; border-radius:8px; overflow:hidden; border:1px solid var(--line);">
-      <div class="tradingview-widget-container">
-        <div id="tv_chart" style="height:360px;"></div>
+<header>
+  <h1>Market <span>Dashboard</span></h1>
+  <div class="clock" id="clock">--:--:--</div>
+</header>
+
+<main>
+
+  <!-- AI Briefing -->
+  <section class="card" id="briefing">
+    <div class="card-head">
+      <h2>AI 브리핑 · Gemini</h2>
+      <div class="meta-row">
+        <span class="timestamp" id="briefing-time">아직 생성 안 됨</span>
+        <button class="btn" id="run-briefing">지금 분석</button>
       </div>
     </div>
-  </div>
-
-  <div class="card" style="margin-top:16px;">
-    <h2>포지션 입력</h2>
-    <p style="margin:0 0 14px; color:var(--sub); font-size:16px; line-height:1.6;">
-      텔레그램 순환TP 방에 공유해두신 본인 포지션을 그대로 복사해서<br>
-      아래 칸에 붙여넣고 "파싱하기" 버튼만 누르시면 됩니다.
-    </p>
-    <textarea id="rawInput" placeholder="여기에 텔레그램에 공유한 포지션 텍스트를 그대로 붙여넣으세요"></textarea>
-    <div class="row">
-      <button class="primary" onclick="parsePositions()">파싱하기</button>
-      <button onclick="resetAll()">초기화</button>
-      <span id="parseMsg" style="font-family:var(--mono);font-size:21px;color:var(--sub);"></span>
+    <div class="card-body">
+      <div class="briefing-empty" id="briefing-content">
+        "지금 분석" 버튼을 누르면 오늘/이번 주 주요 경제 이벤트를 중요도 순으로 정리하고,
+        BTC 포지션 관점에서 참고할 만한 코멘트를 생성합니다.
+      </div>
     </div>
+  </section>
+
+  <!-- Calendar + News -->
+  <div class="split">
+    <section class="card">
+      <div class="card-head"><h2>경제 캘린더</h2></div>
+      <div class="card-body" style="padding:0;">
+        <div class="tv-embed">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embed/embed-widget-events.js" async>
+            {
+              "colorTheme": "dark",
+              "isTransparent": true,
+              "width": "100%",
+              "height": "520",
+              "locale": "kr",
+              "importanceFilter": "-1,0,1",
+              "countryFilter": "us,kr"
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>증시 뉴스</h2></div>
+      <div class="card-body" style="padding:0;">
+        <div class="tv-embed">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embed/embed-widget-timeline.js" async>
+            {
+              "feedMode": "market",
+              "market": "crypto",
+              "colorTheme": "dark",
+              "isTransparent": true,
+              "displayMode": "regular",
+              "width": "100%",
+              "height": "520",
+              "locale": "kr"
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div id="positionsArea" class="positions">
-    <div class="empty">포지션을 파싱하면 여기에 카드가 생성됩니다.</div>
-  </div>
+</main>
 
-  <div class="footnote">
-    ⚠ 수수료/MMR 기본값은 근사치입니다. 실제 거래 전 거래소 공식 페이지에서 최신 값을 확인하세요.<br>
-    이 도구는 계산 참고용이며 투자 조언이 아닙니다. 데이터는 브라우저에만 저장되며 외부로 전송되지 않습니다.
-  </div>
-</div>
+<footer>market-dashboard · smk1004.github.io</footer>
 
-<div class="toast" id="toast"></div>
-
-<div class="modal-overlay" id="calcModal">
-  <div class="modal-box">
-    <div class="modal-head"><span>계산기</span><button class="modal-x" onclick="closeModal('calcModal')">✕</button></div>
-    <div class="calc-display" id="calcDisplay">0</div>
-    <div class="calc-grid">
-      <button class="calc-btn calc-op" onclick="calcClear()">C</button>
-      <button class="calc-btn calc-op" onclick="calcBackspace()">⌫</button>
-      <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
-      <button class="calc-btn calc-op" onclick="calcInput('/')">÷</button>
-
-      <button class="calc-btn" onclick="calcInput('7')">7</button>
-      <button class="calc-btn" onclick="calcInput('8')">8</button>
-      <button class="calc-btn" onclick="calcInput('9')">9</button>
-      <button class="calc-btn calc-op" onclick="calcInput('*')">×</button>
-
-      <button class="calc-btn" onclick="calcInput('4')">4</button>
-      <button class="calc-btn" onclick="calcInput('5')">5</button>
-      <button class="calc-btn" onclick="calcInput('6')">6</button>
-      <button class="calc-btn calc-op" onclick="calcInput('-')">−</button>
-
-      <button class="calc-btn" onclick="calcInput('1')">1</button>
-      <button class="calc-btn" onclick="calcInput('2')">2</button>
-      <button class="calc-btn" onclick="calcInput('3')">3</button>
-      <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
-
-      <button class="calc-btn" onclick="calcInput('0')" style="grid-column:span 2;">0</button>
-      <button class="calc-btn" onclick="calcInput('.')">.</button>
-      <button class="calc-btn calc-eq" onclick="calcEquals()">=</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="notepadModal">
-  <div class="modal-box">
-    <div class="modal-head"><span>메모장</span><button class="modal-x" onclick="closeModal('notepadModal')">✕</button></div>
-    <textarea id="notepadArea" class="notepad-area" placeholder="메모를 입력하세요 (브라우저에만 저장됩니다)"></textarea>
-  </div>
-</div>
-
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script>
-  try{
-    new TradingView.widget({
-      "container_id": "tv_chart",
-      "autosize": true,
-      "symbol": "BINANCE:BTCUSDT.P",
-      "interval": "15",
-      "timezone": "Asia/Seoul",
-      "theme": "dark",
-      "style": "1",
-      "locale": "kr",
-      "toolbar_bg": "#15181c",
-      "hide_top_toolbar": false,
-      "hide_legend": false,
-      "save_image": false,
-      "backgroundColor": "#15181c",
-      "gridColor": "rgba(38,43,49,0.5)"
+  // ── Clock ──
+  function tick(){
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString('ko-KR', { hour12:false });
+  }
+  setInterval(tick, 1000); tick();
+
+  // ── Gemini AI Briefing ──
+  // NOTE: This key is visible in page source since GitHub Pages is static hosting.
+  // Restrict it by HTTP referrer in Google Cloud Console before real deployment.
+  const GEMINI_API_KEY = "AQ.Ab8RN6LzkNEhi-GHXYOCfbZKG5XW8ek6xAym_mbLzeEVUJdYEA";
+  const GEMINI_MODEL = "gemini-2.5-flash";
+
+  const runBtn = document.getElementById('run-briefing');
+  const contentEl = document.getElementById('briefing-content');
+  const timeEl = document.getElementById('briefing-time');
+
+  async function runBriefing(){
+    runBtn.disabled = true;
+    runBtn.textContent = "분석 중...";
+    contentEl.className = "briefing-empty";
+    contentEl.textContent = "실시간 경제 지표 및 시장 상황을 확인하는 중입니다...";
+
+    const today = new Date().toLocaleDateString('ko-KR', {
+      year:'numeric', month:'long', day:'numeric', weekday:'long'
     });
-  }catch(e){
-    document.getElementById('tv_chart').innerHTML = '<div style="padding:20px;color:var(--sub);font-size:18px;">차트를 불러올 수 없습니다 (네트워크 또는 광고차단 확장 확인)</div>';
-  }
-</script>
 
-<script>
-const EXCHANGE_DEFAULTS = {
-  '비트유닉스': { mmr: 0.004, taker: 0.0004, label: 'Bitunix' },
-  '디지파이넥스': { mmr: 0.005, taker: 0.0005, label: 'DigiFinex' },
-  '비트겟': { mmr: 0.004, taker: 0.0006, label: 'Bitget' }
-};
-const LEVERAGE = 50;
-let STATE = { yong1: [], yong2: [] };
+    const prompt =
+`오늘은 ${today}(한국시간)입니다.
+Google Search로 오늘 및 이번 주 예정된 미국 주요 경제 지표 발표(CPI, PPI, PCE, 고용지표, FOMC, 금리결정 등)를 확인해서
+아래 형식으로 한국어 브리핑을 작성해줘.
 
-let priceSourceActive = null;
-let bitgetWS = null;
-let restFallbackTimer = null;
+1. 이번 주 중요 이벤트 최대 5개를 중요도 순으로 나열 (날짜, 한국시간, 이벤트명, 왜 중요한지 한 줄)
+2. BTC/암호화폐 시장에 영향을 줄 가능성이 있는 이벤트가 있다면 마지막에 짧게 코멘트
 
-function setPriceDisplay(price, source){
-  const priceEl = document.getElementById('livePrice');
-  const sourceEl = document.getElementById('priceSource');
-  priceEl.textContent = Number(price).toLocaleString('en-US',{maximumFractionDigits:1});
-  sourceEl.textContent = source + ' · ' + new Date().toLocaleTimeString('ko-KR');
-  autoFillCurrentPrice(price);
-}
+너무 길지 않게, 실전 트레이더가 빠르게 읽을 수 있는 간결한 문장으로 작성해줘.`;
 
-function autoFillCurrentPrice(price){
-  document.querySelectorAll('[id^="price_"]').forEach(inp=>{
-    if(!inp.value) inp.value = Number(price).toFixed(1);
-  });
-}
+    try{
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            tools: [{ google_search: {} }]
+          })
+        }
+      );
 
-// 1순위: Bitget 공개 웹소켓 (실시간 push, 폴링 아님)
-function connectBitgetWS(){
-  try{
-    bitgetWS = new WebSocket('wss://ws.bitget.com/v2/ws/public');
-    let pingTimer;
-    bitgetWS.onopen = () => {
-      bitgetWS.send(JSON.stringify({
-        op: 'subscribe',
-        args: [{ instType: 'USDT-FUTURES', channel: 'ticker', instId: 'BTCUSDT' }]
-      }));
-      pingTimer = setInterval(()=>{ if(bitgetWS.readyState===1) bitgetWS.send('ping'); }, 25000);
-      // WS가 정상 연결되면 REST 폴백은 중지
-      if(restFallbackTimer){ clearInterval(restFallbackTimer); restFallbackTimer = null; }
-    };
-    bitgetWS.onmessage = (e) => {
-      if(e.data === 'pong') return;
-      try{
-        const msg = JSON.parse(e.data);
-        const d = msg?.data?.[0];
-        const price = d?.lastPr || d?.last || d?.close;
-        if(price){ setPriceDisplay(price, 'Bitget(실시간)'); priceSourceActive = 'bitget'; }
-      }catch(err){}
-    };
-    bitgetWS.onerror = () => { startRestFallback(); };
-    bitgetWS.onclose = () => { clearInterval(pingTimer); startRestFallback(); };
-  }catch(e){ startRestFallback(); }
-}
-
-// 2순위/3순위: REST 1초 폴링 (Bitunix → 실패시 Binance)
-function startRestFallback(){
-  if(restFallbackTimer) return; // 이미 폴백 중이면 중복 방지
-  fetchPriceRest();
-  restFallbackTimer = setInterval(fetchPriceRest, 1000);
-}
-
-async function fetchPriceRest(){
-  try{
-    const res = await fetch('https://fapi.bitunix.com/api/v1/futures/market/tickers?symbols=BTCUSDT');
-    const json = await res.json();
-    const price = json?.data?.[0]?.lastPrice || json?.data?.[0]?.la;
-    if(price){ setPriceDisplay(price, 'Bitunix'); return; }
-  }catch(e){ /* 다음 소스로 */ }
-
-  try{
-    const res = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol=BTCUSDT');
-    const json = await res.json();
-    if(json?.price){ setPriceDisplay(json.price, 'Binance(대체)'); return; }
-  }catch(e){ /* fallthrough */ }
-
-  document.getElementById('livePrice').textContent = '조회 실패';
-  document.getElementById('priceSource').textContent = '네트워크를 확인해주세요';
-}
-
-function fetchPrice(){
-  // 수동 새로고침 버튼: WS가 죽어있으면 즉시 REST로 한 번 갱신
-  if(!bitgetWS || bitgetWS.readyState !== 1) fetchPriceRest();
-}
-
-connectBitgetWS();
-startRestFallback(); // WS 연결 확인 전까지 임시로 REST도 같이 시작 (연결되면 자동 중지)
-
-function sumPlus(str){
-  if(!str) return 0;
-  return str.split('+').map(s=>parseFloat(s.trim())).filter(n=>!isNaN(n)).reduce((a,b)=>a+b,0);
-}
-
-function num(str){
-  if(str===undefined || str===null) return null;
-  const cleaned = str.replace(/,/g,'').trim();
-  const n = parseFloat(cleaned);
-  return isNaN(n) ? null : n;
-}
-
-function parsePositions(){
-  const raw = document.getElementById('rawInput').value;
-  if(!raw.trim()){ toast('입력된 텍스트가 없습니다'); return; }
-
-  STATE = { yong1: [], yong2: [] };
-  const hasYongMarker = /용\s*1|용\s*2/.test(raw);
-
-  let parts, forcedYong = null;
-  if(hasYongMarker){
-    parts = raw.split(/(용\s*1|용\s*2)/);
-  } else {
-    // 용1/용2 마커가 없으면 전체를 단일 블록(용1)으로 간주
-    parts = ['용1', raw];
-  }
-  let currentYong = null;
-
-  for(let i=0;i<parts.length;i++){
-    const chunk = parts[i].trim();
-    if(/^용\s*1$/.test(chunk)){ currentYong = 'yong1'; continue; }
-    if(/^용\s*2$/.test(chunk)){ currentYong = 'yong2'; continue; }
-    if(!currentYong || !chunk) continue;
-
-    const exchangeNames = Object.keys(EXCHANGE_DEFAULTS);
-    const namePattern = new RegExp('(' + exchangeNames.join('|') + ')', 'g');
-    const segments = chunk.split(namePattern).filter(s=>s.trim().length>0);
-
-    let i2 = 0;
-    while(i2 < segments.length){
-      const seg = segments[i2].trim();
-      if(exchangeNames.includes(seg)){
-        const exName = seg;
-        const body = segments[i2+1] || '';
-        const uidMatch = body.match(/UID\s*[:：]?\s*([0-9]+)/i);
-        const dirMatch = body.match(/(롱|숏)/);
-        const chargeMatch = body.match(/충\s*[:：]?\s*([\d.,+\s]+)/);
-        const avgMatch = body.match(/평단\s*[:：]?\s*([\d.,]+)/);
-        const tpMatch = body.match(/TP\s*[:：]?\s*([\d.,]+)\s*\(\s*([\d.,\-]+)\s*\)\s*([\d.,+\s]+)/);
-        const liqMatch = body.match(/청산\s*[:：]?\s*([\d.,]+)/);
-
-        const exchange = {
-          name: exName,
-          uid: uidMatch ? uidMatch[1] : '',
-          direction: dirMatch ? (dirMatch[1]==='롱'?'long':'short') : 'long',
-          margin: chargeMatch ? sumPlus(chargeMatch[1]) : 0,
-          avgPrice: avgMatch ? num(avgMatch[1]) : 0,
-          tpPrice: tpMatch ? num(tpMatch[1]) : null,
-          tpProfit: tpMatch ? num(tpMatch[2]) : null,
-          usedMargin: tpMatch ? sumPlus(tpMatch[3]) : 0,
-          origLiq: liqMatch ? num(liqMatch[1]) : null,
-          mmr: EXCHANGE_DEFAULTS[exName].mmr,
-          taker: EXCHANGE_DEFAULTS[exName].taker,
-        };
-        STATE[currentYong].push(exchange);
-        i2 += 2;
-      } else {
-        i2 += 1;
+      if(!res.ok){
+        const errText = await res.text();
+        throw new Error(`API 오류 (${res.status}): ${errText.slice(0,200)}`);
       }
+
+      const data = await res.json();
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const text = parts.map(p => p.text || "").join("\n").trim();
+
+      contentEl.className = "briefing-text";
+      contentEl.textContent = text || "응답을 받았지만 내용이 비어 있습니다. 다시 시도해주세요.";
+      timeEl.textContent = new Date().toLocaleString('ko-KR', { hour12:false });
+
+    } catch(err){
+      contentEl.className = "briefing-empty";
+      contentEl.textContent = "분석 실패: " + err.message;
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = "지금 분석";
     }
   }
 
-  const total = STATE.yong1.length + STATE.yong2.length;
-  document.getElementById('parseMsg').textContent = total>0 ? `${total}개 포지션 인식 완료` : '인식된 포지션이 없습니다';
-  renderPositions();
-}
-
-function calcLiq(entryPrice, walletMargin, usedMargin, direction, mmr){
-  // 크로스 마진: 포지션 수량은 사용증거금 기준, 청산 버퍼는 충(지갑) 전체
-  const notional = usedMargin * LEVERAGE;
-  const positionSize = notional / entryPrice; // BTC
-  const mm = notional * mmr;
-  if(direction === 'long'){
-    return entryPrice - (walletMargin - mm) / positionSize;
-  } else {
-    return entryPrice + (walletMargin - mm) / positionSize;
-  }
-}
-
-function fmt(n, digits=0){
-  if(n===null || n===undefined || isNaN(n)) return '-';
-  return n.toLocaleString('en-US', {maximumFractionDigits: digits, minimumFractionDigits: digits});
-}
-
-function renderPositions(){
-  const area = document.getElementById('positionsArea');
-  area.innerHTML = '';
-  const yongKeys = [['yong1','용1'], ['yong2','용2']];
-  let any = false;
-
-  yongKeys.forEach(([key,label])=>{
-    const list = STATE[key];
-    if(!list || list.length===0) return;
-    any = true;
-    const block = document.createElement('div');
-    block.className = 'pos-block';
-    let html = `<div class="pos-title">${label}</div>`;
-
-    list.forEach((ex, idx)=>{
-      const dirLabel = ex.direction==='long' ? '롱' : '숏';
-      const dirClass = ex.direction==='long' ? 'dir-long' : 'dir-short';
-      const id = `${key}_${idx}`;
-      html += `
-      <div class="exch-card" id="card_${id}">
-        <div class="exch-head">
-          <div class="exch-name">${ex.name}<span class="uid-tag">UID ${ex.uid}</span></div>
-          <div class="dir-badge ${dirClass}">${dirLabel}</div>
-        </div>
-        <div class="fields">
-          <div class="f"><label>증거금(충)</label><input id="margin_${id}" type="text" value="${ex.margin}"></div>
-          <div class="f"><label>평단</label><input id="avg_${id}" type="text" value="${ex.avgPrice}"></div>
-          <div class="f"><label>TP 가격</label><input id="tpPrice_${id}" type="text" value="${ex.tpPrice ?? ''}"></div>
-          <div class="f"><label>TP 목표순이익</label><input id="tpProfit_${id}" type="text" value="${ex.tpProfit ?? ''}"></div>
-          <div class="f"><label>포지션 진입금액(사용증거금)</label><input id="usedMargin_${id}" type="text" value="${ex.usedMargin ?? ''}"></div>
-          <div class="f"><label>MMR(%)</label><input id="mmr_${id}" type="text" value="${(ex.mmr*100).toFixed(3)}"></div>
-          <div class="f"><label>Taker 수수료(%)</label><input id="taker_${id}" type="text" value="${(ex.taker*100).toFixed(3)}"></div>
-          <div class="f"><label>원본 청산가(입력값)</label><input id="origLiq_${id}" type="text" value="${ex.origLiq ?? ''}" readonly style="opacity:0.75;"></div>
-        </div>
-        <div class="action-row">
-          <div class="f">
-            <label>현재가</label>
-            <input id="price_${id}" type="text" placeholder="예: 61500">
-          </div>
-          <div class="f">
-            <label>동작</label>
-            <select id="action_${id}">
-              <option value="margin_add">증거금 추가</option>
-              <option value="add_position">물타기/불타기 (시장가 진입)</option>
-            </select>
-          </div>
-          <div class="f">
-            <label>금액(USDT)</label>
-            <input id="amount_${id}" type="text" placeholder="예: 1000">
-          </div>
-          <button onclick="calculate('${id}')">계산</button>
-          <button onclick="toggleFormula('${id}')">계산식</button>
-          <div class="tool-buttons">
-            <button onclick="openCalcTool()" title="계산기">🖩 계산기</button>
-            <button onclick="openNotepad()" title="메모장">📝 메모장</button>
-          </div>
-        </div>
-        <div class="result" id="result_${id}"></div>
-        <div class="formula" id="formula_${id}"></div>
-      </div>`;
-    });
-    block.innerHTML = html;
-    area.appendChild(block);
-  });
-
-  if(!any){
-    area.innerHTML = '<div class="empty">포지션을 파싱하면 여기에 카드가 생성됩니다.</div>';
-  }
-}
-
-function calculate(id){
-  const [key, idxStr] = id.split('_');
-  const idx = parseInt(idxStr);
-  const ex = STATE[key][idx];
-
-  const margin = num(document.getElementById(`margin_${id}`).value) || 0;
-  const avgPrice = num(document.getElementById(`avg_${id}`).value) || 0;
-  const usedMargin = num(document.getElementById(`usedMargin_${id}`).value) || 0;
-  const mmr = (num(document.getElementById(`mmr_${id}`).value) || 0) / 100;
-  const taker = (num(document.getElementById(`taker_${id}`).value) || 0) / 100;
-  const currentPrice = num(document.getElementById(`price_${id}`).value);
-  const action = document.getElementById(`action_${id}`).value;
-  const amount = num(document.getElementById(`amount_${id}`).value) || 0;
-
-  const resultBox = document.getElementById(`result_${id}`);
-  const formulaBox = document.getElementById(`formula_${id}`);
-
-  if(action === 'add_position' && currentPrice === null){
-    toast('현재가를 입력해주세요');
-    return;
-  }
-
-  let newMargin = margin, newAvg = avgPrice, newUsedMargin = usedMargin;
-  let formulaLines = [];
-
-  if(action === 'margin_add'){
-    newMargin = margin + amount;
-    newAvg = avgPrice;
-    formulaLines.push(`증거금 추가: ${margin} + ${amount} = ${newMargin} USDT`);
-    formulaLines.push(`평단 변화 없음 (포지션 수량 불변)`);
-  } else {
-    if(usedMargin <= 0){ toast('포지션 진입금액(사용증거금)이 필요합니다'); return; }
-    const oldPositionSize = (usedMargin * LEVERAGE) / avgPrice;
-    const addedPositionSize = (amount * LEVERAGE) / currentPrice;
-    const newPositionSize = oldPositionSize + addedPositionSize;
-    newAvg = (oldPositionSize * avgPrice + addedPositionSize * currentPrice) / newPositionSize;
-    newMargin = margin;
-    newUsedMargin = usedMargin + amount; // 물타기는 사용증거금이 늘어남 (충 총액은 불변)
-    formulaLines.push(`기존 포지션 수량 = ${usedMargin} × ${LEVERAGE} / ${avgPrice} = ${oldPositionSize.toFixed(6)} BTC`);
-    formulaLines.push(`추가 포지션 수량 = ${amount} × ${LEVERAGE} / ${currentPrice} = ${addedPositionSize.toFixed(6)} BTC`);
-    formulaLines.push(`새 평단 = (${oldPositionSize.toFixed(6)}×${avgPrice} + ${addedPositionSize.toFixed(6)}×${currentPrice}) / ${newPositionSize.toFixed(6)}`);
-  }
-
-  const newLiq = calcLiq(newAvg, newMargin, newUsedMargin, ex.direction, mmr);
-  const notional = newUsedMargin * LEVERAGE;
-  const entryFee = amount>0 && action==='add_position' ? (amount*LEVERAGE*taker) : 0;
-  const totalEntryFee = notional * taker; // 전체 진입 수수료 (처음+모든 물타기)
-  const exitFee = notional * taker;       // 전체 종료 수수료
-  const totalFee = totalEntryFee + exitFee; // 포지션 왕복 총 수수료
-
-  formulaLines.push(`청산가 = ${ex.direction==='long' ? '평단 - (충 - 유지증거금)/수량' : '평단 + (충 - 유지증거금)/수량'}, MMR=${(mmr*100).toFixed(3)}%`);
-  formulaLines.push(`유지증거금 = 사용증거금×50×MMR = ${newUsedMargin}×${LEVERAGE}×${(mmr*100).toFixed(3)}% = ${(newUsedMargin*LEVERAGE*mmr).toFixed(2)} USDT`);
-
-  resultBox.classList.add('show');
-  resultBox.innerHTML = `
-    <div class="rline"><span>변경 평단</span><span style="color:#4ade80;">${fmt(newAvg,1)} USDT</span></div>
-    <div class="rline"><span>변경 청산가</span><span style="color:#f87171;">${fmt(newLiq,1)} USDT</span></div>
-    <div class="rline"><span>총 증거금</span><span>${fmt(newMargin,1)} USDT</span></div>
-    <div class="rline"><span>사용 증거금(포지션 진입금액)</span><span>${fmt(newUsedMargin,1)} USDT</span></div>
-    ${action==='add_position' ? `<div class="rline"><span>추가 진입 수수료(근사)</span><span>${fmt(entryFee,2)} USDT</span></div>` : ''}
-    <div class="rline"><span>전체 진입 수수료(근사)</span><span>${fmt(totalEntryFee,2)} USDT</span></div>
-    <div class="rline"><span>예상 종료 수수료(근사)</span><span>${fmt(exitFee,2)} USDT</span></div>
-    <div class="rline" style="border-top:1px solid var(--line-soft);margin-top:6px;padding-top:8px;"><span style="color:var(--brass);">총 수수료 (진입+종료 왕복)</span><span style="color:var(--brass);">${fmt(totalFee,2)} USDT</span></div>
-  `;
-  const distPct = Math.abs((currentPrice||newAvg) - newLiq) / (currentPrice||newAvg) * 100;
-  resultBox.innerHTML += `<div class="gauge-wrap">
-    <div class="gauge"><div class="gauge-fill" style="width:${Math.min(100,distPct*3)}%"></div></div>
-    <div class="gauge-label">청산까지 ${distPct.toFixed(2)}%</div>
-  </div>`;
-
-  formulaBox.textContent = formulaLines.join('\n');
-}
-
-function toggleFormula(id){
-  document.getElementById(`formula_${id}`).classList.toggle('show');
-}
-
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2200);
-}
-
-function resetAll(){
-  document.getElementById('rawInput').value = '';
-  document.getElementById('parseMsg').textContent = '';
-  STATE = { yong1: [], yong2: [] };
-  renderPositions();
-  toast('초기화되었습니다');
-}
-
-function openModal(id){ document.getElementById(id).classList.add('show'); }
-function closeModal(id){ document.getElementById(id).classList.remove('show'); }
-function openCalcTool(){ openModal('calcModal'); }
-function openNotepad(){
-  openModal('notepadModal');
-  try{
-    const saved = localStorage.getItem('btc_agent_notepad');
-    if(saved !== null) document.getElementById('notepadArea').value = saved;
-  }catch(e){}
-}
-document.addEventListener('input', (e)=>{
-  if(e.target && e.target.id === 'notepadArea'){
-    try{ localStorage.setItem('btc_agent_notepad', e.target.value); }catch(err){}
-  }
-});
-
-// 간단한 4칙연산 계산기 (eval 미사용, 안전한 상태 기반 구현)
-let calcState = { current: '0', prevValue: null, operator: null, waitingForNew: false };
-function calcRender(){ document.getElementById('calcDisplay').textContent = calcState.current; }
-function calcClear(){ calcState = { current: '0', prevValue: null, operator: null, waitingForNew: false }; calcRender(); }
-function calcBackspace(){
-  if(calcState.waitingForNew) return;
-  calcState.current = calcState.current.length>1 ? calcState.current.slice(0,-1) : '0';
-  calcRender();
-}
-function calcInput(val){
-  if(['+','-','*','/'].includes(val)){
-    if(calcState.operator && !calcState.waitingForNew){ calcEquals(); }
-    calcState.prevValue = parseFloat(calcState.current);
-    calcState.operator = val;
-    calcState.waitingForNew = true;
-    return;
-  }
-  if(val === '%'){
-    calcState.current = String(parseFloat(calcState.current)/100);
-    calcRender();
-    return;
-  }
-  if(val === '.'){
-    if(calcState.waitingForNew){ calcState.current = '0.'; calcState.waitingForNew=false; calcRender(); return; }
-    if(!calcState.current.includes('.')) calcState.current += '.';
-    calcRender();
-    return;
-  }
-  if(calcState.waitingForNew){
-    calcState.current = val;
-    calcState.waitingForNew = false;
-  } else {
-    calcState.current = calcState.current === '0' ? val : calcState.current + val;
-  }
-  calcRender();
-}
-function calcEquals(){
-  if(calcState.operator === null || calcState.prevValue === null) return;
-  const a = calcState.prevValue;
-  const b = parseFloat(calcState.current);
-  let result = 0;
-  switch(calcState.operator){
-    case '+': result = a+b; break;
-    case '-': result = a-b; break;
-    case '*': result = a*b; break;
-    case '/': result = b!==0 ? a/b : NaN; break;
-  }
-  calcState.current = String(Math.round(result*1e8)/1e8);
-  calcState.operator = null;
-  calcState.prevValue = null;
-  calcState.waitingForNew = true;
-  calcRender();
-}
-calcRender();
-
-document.addEventListener('keydown', (e)=>{
-  const calcOpen = document.getElementById('calcModal').classList.contains('show');
-  if(!calcOpen) return;
-
-  if(e.key >= '0' && e.key <= '9'){ calcInput(e.key); e.preventDefault(); return; }
-  if(e.key === '.' || e.key === ','){ calcInput('.'); e.preventDefault(); return; }
-  if(e.key === '+'){ calcInput('+'); e.preventDefault(); return; }
-  if(e.key === '-'){ calcInput('-'); e.preventDefault(); return; }
-  if(e.key === '*'){ calcInput('*'); e.preventDefault(); return; }
-  if(e.key === '/'){ calcInput('/'); e.preventDefault(); return; }
-  if(e.key === '%'){ calcInput('%'); e.preventDefault(); return; }
-  if(e.key === 'Enter' || e.key === '='){ calcEquals(); e.preventDefault(); return; }
-  if(e.key === 'Backspace'){ calcBackspace(); e.preventDefault(); return; }
-  if(e.key === 'Escape'){ closeModal('calcModal'); e.preventDefault(); return; }
-  if(e.key.toLowerCase() === 'c'){ calcClear(); e.preventDefault(); return; }
-});
+  runBtn.addEventListener('click', runBriefing);
 </script>
+
 </body>
 </html>
