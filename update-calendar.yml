@@ -1,0 +1,51 @@
+name: Update Economic Calendar
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch calendar data (this week + next week, merged)
+        run: |
+          curl -sL -A "Mozilla/5.0" "https://nfs.faireconomy.media/ff_calendar_thisweek.json" -o thisweek.json
+          curl -sL -A "Mozilla/5.0" "https://nfs.faireconomy.media/ff_calendar_nextweek.json" -o nextweek.json
+          python3 -c "
+          import json, sys
+
+          def load(path):
+              try:
+                  with open(path) as f:
+                      d = json.load(f)
+                  return d if isinstance(d, list) else []
+              except Exception:
+                  return []
+
+          this_week = load('thisweek.json')
+          next_week = load('nextweek.json')
+          merged = this_week + next_week
+
+          if len(merged) == 0:
+              print('Both feeds empty/invalid, keeping previous calendar-data.json')
+              sys.exit(1)
+
+          with open('calendar-data.json', 'w') as f:
+              json.dump(merged, f, ensure_ascii=False)
+          print(f'Merged {len(this_week)} + {len(next_week)} = {len(merged)} events')
+          " || git checkout -- calendar-data.json
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add calendar-data.json
+          git diff --staged --quiet || git commit -m "Update calendar data $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
