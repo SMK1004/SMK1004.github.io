@@ -84,44 +84,40 @@
 
   .err{color:var(--red); font-size:13px; margin-top:10px; display:none;}
 
-  table{width:100%; border-collapse:collapse; font-size:13px;}
-  thead th{
-    text-align:left; color:var(--sub); font-weight:600; font-size:11px;
-    letter-spacing:.5px; text-transform:uppercase;
-    padding:0 8px 8px; border-bottom:1px solid var(--line);
+  .set-group{
+    background:var(--panel2); border:1px solid var(--line); border-radius:12px;
+    padding:14px; margin-bottom:12px;
   }
-  tbody td{padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:middle;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr.urgent{background:rgba(224,96,90,.08);}
-  tbody tr.close{background:rgba(201,164,102,.08);}
+  .set-group.urgent{border-color:var(--red);}
+  .set-group.close{border-color:var(--brass);}
+  .set-title{font-size:14px; font-weight:700; margin-bottom:10px;}
 
-  .set-name{font-weight:700; font-size:13px;}
-  .set-exch{color:var(--sub); font-size:11px;}
+  .leg{
+    padding:10px 0; border-top:1px solid var(--line);
+  }
+  .leg:first-of-type{border-top:none;}
+  .leg-row1{display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
   .badge{font-size:11px; font-weight:700; padding:2px 7px; border-radius:5px; display:inline-block;}
   .badge.long{background:rgba(79,191,122,.15); color:var(--green);}
   .badge.short{background:rgba(224,96,90,.15); color:var(--red);}
-  .num{font-variant-numeric:tabular-nums; white-space:nowrap;}
-  .dist{font-weight:700; font-variant-numeric:tabular-nums;}
-  .dist.urgent{color:var(--red);}
-  .dist.close{color:var(--brass);}
-  .dist.far{color:var(--sub);}
+  .leg-exch{color:var(--sub); font-size:12px;}
+  .leg-pnl{margin-left:auto; font-weight:700; font-size:13px;}
   .pnl-up{color:var(--green);}
   .pnl-down{color:var(--red);}
 
+  .field-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;}
+  .field{background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:7px 9px;}
+  .field .lbl{font-size:10px; color:var(--sub); margin-bottom:2px;}
+  .field .val{font-size:13px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .field .val.target{color:var(--brass);}
+  .field .val.dist.urgent{color:var(--red);}
+  .field .val.dist.close{color:var(--brass);}
+  .field .val.dist.far{color:var(--text);}
+
   .empty{color:var(--sub); font-size:14px; text-align:center; padding:30px 0;}
 
-  @media (max-width: 560px){
-    table, thead, tbody, th, td, tr{display:block;}
-    thead{display:none;}
-    tbody tr{
-      background:var(--panel2); border:1px solid var(--line); border-radius:10px;
-      padding:12px; margin-bottom:8px;
-    }
-    tbody tr.urgent{border-color:var(--red);}
-    tbody tr.close{border-color:var(--brass);}
-    tbody td{border:none; padding:3px 0;}
-    .mobile-row{display:flex; justify-content:space-between; align-items:center;}
-    .mobile-label{color:var(--sub); font-size:11px;}
+  @media (max-width: 480px){
+    .field-grid{grid-template-columns:repeat(2, 1fr);}
   }
 </style>
 </head>
@@ -176,21 +172,8 @@ TP : 65200 (800) 800
   </div>
 
   <div class="panel" id="resultPanel" style="display:none;">
-    <div class="panel-label">전체 포지션 (익절까지 가까운 순)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>세트</th>
-          <th>방향</th>
-          <th>평단</th>
-          <th>손익</th>
-          <th>익절가</th>
-          <th>익절까지</th>
-          <th>청산까지</th>
-        </tr>
-      </thead>
-      <tbody id="resultBody"></tbody>
-    </table>
+    <div class="panel-label">세트별 보기 (익절까지 가까운 순)</div>
+    <div id="resultBody"></div>
   </div>
 </div>
 
@@ -357,7 +340,11 @@ function parseFields(lines){
 // UID 줄을 앵커로 각 포지션을 잘라냄 — 메시지 사이 시간/시스템 메시지/날짜 구분선/---
 // 같은 텔레그램 노이즈가 섞여 있어도 안정적으로 포지션을 분리한다.
 function parseText(text){
-  const rawLines = text.split('\n').map(l => l.trim());
+  // "[2026-08-14 오후 6:13] 준영이: 김해" 처럼 메시지 앞에 날짜/시간/발신자가 붙어서
+  // 첫 줄과 한 줄로 합쳐져 나오는 복사 형식도 처리 — 대괄호 prefix 제거
+  const rawLines = text.split('\n').map(l =>
+    l.trim().replace(/^\[\d{4}-\d{2}-\d{2}\s*(?:오전|오후)\s*\d{1,2}:\d{2}\]\s*[^:\n]+:\s*/, '')
+  );
   const n = rawLines.length;
 
   const uidIndices = [];
@@ -405,7 +392,7 @@ let lastPositions = null;
 const LEVERAGE = 50;
 
 function renderTable(positions){
-  const tbody = document.getElementById('resultBody');
+  const bodyEl = document.getElementById('resultBody');
   const resultPanel = document.getElementById('resultPanel');
 
   if(currentPrice === null){
@@ -416,6 +403,11 @@ function renderTable(positions){
     const tpDistPct = pos.direction === '롱'
       ? (pos.tp - currentPrice) / currentPrice * 100
       : (currentPrice - pos.tp) / currentPrice * 100;
+
+    // 목표수익률: TP가 평단 대비 몇 % 떨어진 곳에 걸려있는지 (텔레에 따로 안 적어도 평단/TP로 계산됨)
+    const targetPct = pos.direction === '롱'
+      ? (pos.tp - pos.avg) / pos.avg * 100
+      : (pos.avg - pos.tp) / pos.avg * 100;
 
     const priceChangePct = pos.direction === '롱'
       ? (currentPrice - pos.avg) / pos.avg
@@ -430,43 +422,63 @@ function renderTable(positions){
         : (pos.liq - currentPrice) / currentPrice * 100;
     }
 
-    return { ...pos, tpDistPct, pnlAmount, pnlPct, liqDistPct };
+    return { ...pos, tpDistPct, targetPct, pnlAmount, pnlPct, liqDistPct };
   });
 
-  rows.sort((a, b) => Math.abs(a.tpDistPct) - Math.abs(b.tpDistPct));
+  // 파싱된 순서대로 2개씩(롱+숏) 묶어서 하나의 "세트"로 그룹핑.
+  // 실제 붙여넣는 텍스트가 항상 세트 단위(롱 다음 숏)로 이어지는 것을 이용한 방식이라,
+  // 홀수로 남는 마지막 포지션은 혼자 있는 그룹으로 처리한다.
+  const groups = [];
+  for(let i = 0; i < rows.length; i += 2){
+    const legs = rows.slice(i, i + 2);
+    const label = legs.find(l => l.name && !KNOWN_EXCHANGES.includes(l.name))?.name || legs[0].name;
+    const minAbsTpDist = Math.min(...legs.map(l => Math.abs(l.tpDistPct)));
+    groups.push({ label, legs, minAbsTpDist });
+  }
 
-  tbody.innerHTML = rows.map(r => {
+  groups.sort((a, b) => a.minAbsTpDist - b.minAbsTpDist);
+
+  function legHtml(r){
     const dirClass = r.direction === '롱' ? 'long' : 'short';
     const urgency = Math.abs(r.tpDistPct) < 0.5 ? 'urgent' : Math.abs(r.tpDistPct) < 2 ? 'close' : 'far';
-    const rowClass = urgency === 'urgent' ? 'urgent' : urgency === 'close' ? 'close' : '';
     const tpDistLabel = (r.tpDistPct >= 0 ? '' : '도달 ') + Math.abs(r.tpDistPct).toFixed(2) + '%';
 
     const pnlUp = r.pnlAmount !== null && r.pnlAmount >= 0;
     const pnlLabel = r.pnlAmount !== null
-      ? `${pnlUp ? '+' : ''}${won(r.pnlAmount)} <span style="opacity:.7">(${pnlUp ? '+' : ''}${r.pnlPct.toFixed(1)}%)</span>`
+      ? `${pnlUp ? '+' : ''}${won(r.pnlAmount)} (${pnlUp ? '+' : ''}${r.pnlPct.toFixed(1)}%)`
       : '-';
 
-    let liqLabel = '-';
-    let liqClass = '';
+    let liqLabel = '-', liqClass = '';
     if(r.liqDistPct !== null){
       liqClass = r.liqDistPct < 5 ? 'urgent' : r.liqDistPct < 15 ? 'close' : 'far';
       liqLabel = Math.abs(r.liqDistPct).toFixed(1) + '%';
     }
 
     return `
-    <tr class="${rowClass}">
-      <td>
-        <div class="mobile-label">세트</div>
-        <div class="set-name">${r.name}</div>
-        <div class="set-exch">${r.exch || '-'}</div>
-      </td>
-      <td><div class="mobile-label">방향</div><span class="badge ${dirClass}">${r.direction}</span></td>
-      <td><div class="mobile-label">평단</div><span class="num">${won(r.avg)}</span></td>
-      <td><div class="mobile-label">손익</div><span class="num ${pnlUp ? 'pnl-up' : 'pnl-down'}">${pnlLabel}</span></td>
-      <td><div class="mobile-label">익절가</div><span class="num">${won(r.tp)}</span></td>
-      <td><div class="mobile-label">익절까지</div><span class="dist ${urgency}">${tpDistLabel}</span></td>
-      <td><div class="mobile-label">청산까지</div><span class="dist ${liqClass}">${liqLabel}</span></td>
-    </tr>`;
+    <div class="leg">
+      <div class="leg-row1">
+        <span class="badge ${dirClass}">${r.direction}</span>
+        <span class="leg-exch">${r.exch || '-'} · UID ${r.uid}</span>
+        <span class="leg-pnl ${pnlUp ? 'pnl-up' : 'pnl-down'}">${pnlLabel}</span>
+      </div>
+      <div class="field-grid">
+        <div class="field"><div class="lbl">평단</div><div class="val">${won(r.avg)}</div></div>
+        <div class="field"><div class="lbl">목표%</div><div class="val target">${r.targetPct.toFixed(2)}%</div></div>
+        <div class="field"><div class="lbl">익절가</div><div class="val">${won(r.tp)}</div></div>
+        <div class="field"><div class="lbl">익절까지</div><div class="val dist ${urgency}">${tpDistLabel}</div></div>
+        <div class="field"><div class="lbl">청산가</div><div class="val">${r.liq !== null ? won(r.liq) : '-'}</div></div>
+        <div class="field"><div class="lbl">청산까지</div><div class="val dist ${liqClass}">${liqLabel}</div></div>
+      </div>
+    </div>`;
+  }
+
+  bodyEl.innerHTML = groups.map(g => {
+    const urgency = g.minAbsTpDist < 0.5 ? 'urgent' : g.minAbsTpDist < 2 ? 'close' : '';
+    return `
+    <div class="set-group ${urgency}">
+      <div class="set-title">세트: ${g.label}</div>
+      ${g.legs.map(legHtml).join('')}
+    </div>`;
   }).join('');
 
   resultPanel.style.display = 'block';
