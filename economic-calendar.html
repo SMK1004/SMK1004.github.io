@@ -111,6 +111,11 @@
 
   <div class="day-tabs" id="dayTabs"></div>
 
+  <div class="toolbar" id="currencyFilter">
+    <span class="chip active" data-ccy="USD">🇺🇸 USD만</span>
+    <span class="chip" data-ccy="all">전체 통화</span>
+  </div>
+
   <div class="toolbar" id="impactFilter">
     <span class="chip active" data-impact="all">전체</span>
     <span class="chip" data-impact="High">★★★ 높음</span>
@@ -236,6 +241,7 @@ function translateTitle(title){
 
 let allEvents = [];
 let currentFilter = 'all';
+let currencyFilter = 'USD';
 let selectedDateKey = null;
 
 // calendar-data.json은 GitHub Actions가 6시간마다 서버에서 미리 가져와 저장소에 저장해두는 파일
@@ -245,6 +251,10 @@ const DATA_URL = 'calendar-data.json?t=' + Date.now();
 function kstDateKey(dateObj){
   // YYYY-MM-DD 형태의 정렬 가능한 키 (한국시간 기준)
   return dateObj.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+}
+
+function ccyFiltered(){
+  return currencyFilter === 'all' ? allEvents : allEvents.filter(e => e.country === currencyFilter);
 }
 
 async function loadCalendar(){
@@ -261,14 +271,8 @@ async function loadCalendar(){
 
     allEvents = data.map(e => ({...e, dateObj: new Date(e.date)}))
                      .sort((a,b) => a.dateObj - b.dateObj);
-    statusEl.textContent = `이번 주 ${allEvents.length}개 일정 · ${new Date().toLocaleTimeString('ko-KR')} 기준`;
 
-    const todayKey = kstDateKey(new Date());
-    const availableKeys = [...new Set(allEvents.map(e => kstDateKey(e.dateObj)))].sort();
-    selectedDateKey = availableKeys.includes(todayKey)
-      ? todayKey
-      : (availableKeys.find(k => k > todayKey) || availableKeys[0]);
-
+    pickDefaultDate();
     renderTabs();
     render();
   }catch(e){
@@ -277,10 +281,19 @@ async function loadCalendar(){
   }
 }
 
+function pickDefaultDate(){
+  const todayKey = kstDateKey(new Date());
+  const availableKeys = [...new Set(ccyFiltered().map(e => kstDateKey(e.dateObj)))].sort();
+  if(availableKeys.length === 0){ selectedDateKey = null; return; }
+  selectedDateKey = availableKeys.includes(todayKey)
+    ? todayKey
+    : (availableKeys.find(k => k > todayKey) || availableKeys[0]);
+}
+
 function renderTabs(){
   const tabsEl = document.getElementById('dayTabs');
   const todayKey = kstDateKey(new Date());
-  const keys = [...new Set(allEvents.map(e => kstDateKey(e.dateObj)))].sort();
+  const keys = [...new Set(ccyFiltered().map(e => kstDateKey(e.dateObj)))].sort();
 
   tabsEl.innerHTML = keys.map(key => {
     const [y, m, d] = key.split('-').map(Number);
@@ -296,9 +309,13 @@ function renderTabs(){
 
 function render(){
   const calEl = document.getElementById('calendar');
+  const statusEl = document.getElementById('statusText');
   const now = new Date();
 
-  let filtered = allEvents.filter(e => kstDateKey(e.dateObj) === selectedDateKey);
+  const ccyEvents = ccyFiltered();
+  statusEl.textContent = `${currencyFilter === 'all' ? '전체' : currencyFilter} ${ccyEvents.length}개 일정 · ${new Date().toLocaleTimeString('ko-KR')} 기준`;
+
+  let filtered = ccyEvents.filter(e => kstDateKey(e.dateObj) === selectedDateKey);
   if(currentFilter !== 'all'){
     filtered = filtered.filter(e => e.impact === currentFilter);
   }
@@ -343,6 +360,17 @@ document.getElementById('dayTabs').addEventListener('click', (e) => {
   const tab = e.target.closest('.day-tab');
   if(!tab) return;
   selectedDateKey = tab.dataset.key;
+  renderTabs();
+  render();
+});
+
+document.getElementById('currencyFilter').addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  document.querySelectorAll('#currencyFilter .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  currencyFilter = chip.dataset.ccy;
+  pickDefaultDate();
   renderTabs();
   render();
 });
