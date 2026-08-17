@@ -27,7 +27,7 @@
     font-family:var(--sans);
     padding:24px 16px 60px;
   }
-  .wrap{max-width:640px; margin:0 auto;}
+  .wrap{max-width:960px; margin:0 auto;}
   .top{display:flex; align-items:center; gap:10px; margin-bottom:20px;}
   .top a{
     color:var(--sub); text-decoration:none; font-size:14px;
@@ -86,39 +86,37 @@
 
   .set-group{
     background:var(--panel2); border:1px solid var(--line); border-radius:12px;
-    padding:14px; margin-bottom:12px;
+    padding:14px 16px; margin-bottom:12px;
   }
   .set-group.urgent{border-color:var(--red);}
   .set-group.close{border-color:var(--brass);}
-  .set-title{font-size:14px; font-weight:700; margin-bottom:10px;}
+  .set-title{font-size:14px; font-weight:700; margin-bottom:8px;}
 
+  .leg-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
   .leg{
-    padding:10px 0; border-top:1px solid var(--line);
+    display:flex; align-items:center; gap:18px;
+    padding:8px 0; border-top:1px solid var(--line);
+    white-space:nowrap; font-size:13px;
   }
   .leg:first-of-type{border-top:none;}
-  .leg-row1{display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;}
-  .badge{font-size:11px; font-weight:700; padding:2px 7px; border-radius:5px; display:inline-block;}
+  .badge{
+    font-size:11px; font-weight:700; padding:2px 8px; border-radius:5px;
+    display:inline-block; width:22px; text-align:center; flex-shrink:0;
+  }
   .badge.long{background:rgba(79,191,122,.15); color:var(--green);}
   .badge.short{background:rgba(224,96,90,.15); color:var(--red);}
-  .leg-exch{color:var(--sub); font-size:12px;}
-  .leg-pnl{margin-left:auto; font-weight:700; font-size:13px;}
+  .leg-exch{color:var(--sub); font-size:12px; width:120px; flex-shrink:0;}
+  .leg-field{flex-shrink:0;}
+  .leg-field .lbl{color:var(--sub); font-size:11px; margin-right:4px;}
+  .leg-field .val{font-weight:600; font-variant-numeric:tabular-nums;}
+  .val.target{color:var(--brass);}
+  .val.dist.urgent{color:var(--red);}
+  .val.dist.close{color:var(--brass);}
+  .leg-pnl{margin-left:auto; font-weight:700; flex-shrink:0;}
   .pnl-up{color:var(--green);}
   .pnl-down{color:var(--red);}
 
-  .field-grid{display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;}
-  .field{background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:7px 9px;}
-  .field .lbl{font-size:10px; color:var(--sub); margin-bottom:2px;}
-  .field .val{font-size:13px; font-weight:600; font-variant-numeric:tabular-nums;}
-  .field .val.target{color:var(--brass);}
-  .field .val.dist.urgent{color:var(--red);}
-  .field .val.dist.close{color:var(--brass);}
-  .field .val.dist.far{color:var(--text);}
-
   .empty{color:var(--sub); font-size:14px; text-align:center; padding:30px 0;}
-
-  @media (max-width: 480px){
-    .field-grid{grid-template-columns:repeat(2, 1fr);}
-  }
 </style>
 </head>
 <body>
@@ -456,19 +454,15 @@ function renderTable(positions){
 
     return `
     <div class="leg">
-      <div class="leg-row1">
-        <span class="badge ${dirClass}">${r.direction}</span>
-        <span class="leg-exch">${r.exch || '-'} · UID ${r.uid}</span>
-        <span class="leg-pnl ${pnlUp ? 'pnl-up' : 'pnl-down'}">${pnlLabel}</span>
-      </div>
-      <div class="field-grid">
-        <div class="field"><div class="lbl">평단</div><div class="val">${won(r.avg)}</div></div>
-        <div class="field"><div class="lbl">목표%</div><div class="val target">${r.targetPct.toFixed(2)}%</div></div>
-        <div class="field"><div class="lbl">익절가</div><div class="val">${won(r.tp)}</div></div>
-        <div class="field"><div class="lbl">익절까지</div><div class="val dist ${urgency}">${tpDistLabel}</div></div>
-        <div class="field"><div class="lbl">청산가</div><div class="val">${r.liq !== null ? won(r.liq) : '-'}</div></div>
-        <div class="field"><div class="lbl">청산까지</div><div class="val dist ${liqClass}">${liqLabel}</div></div>
-      </div>
+      <span class="badge ${dirClass}">${r.direction}</span>
+      <span class="leg-exch">${r.exch || '-'} · ${r.uid}</span>
+      <span class="leg-field"><span class="lbl">평단</span><span class="val">${won(r.avg)}</span></span>
+      <span class="leg-field"><span class="lbl">목표</span><span class="val target">${r.targetPct.toFixed(2)}%</span></span>
+      <span class="leg-field"><span class="lbl">익절가</span><span class="val">${won(r.tp)}</span></span>
+      <span class="leg-field"><span class="lbl">익절까지</span><span class="val dist ${urgency}">${tpDistLabel}</span></span>
+      <span class="leg-field"><span class="lbl">청산가</span><span class="val">${r.liq !== null ? won(r.liq) : '-'}</span></span>
+      <span class="leg-field"><span class="lbl">청산까지</span><span class="val dist ${liqClass}">${liqLabel}</span></span>
+      <span class="leg-pnl ${pnlUp ? 'pnl-up' : 'pnl-down'}">${pnlLabel}</span>
     </div>`;
   }
 
@@ -477,7 +471,9 @@ function renderTable(positions){
     return `
     <div class="set-group ${urgency}">
       <div class="set-title">세트: ${g.label}</div>
-      ${g.legs.map(legHtml).join('')}
+      <div class="leg-scroll">
+        ${g.legs.map(legHtml).join('')}
+      </div>
     </div>`;
   }).join('');
 
