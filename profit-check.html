@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수익 확인 · SMK1004</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --bg:#0e1013;
+    --panel:#15181c;
+    --panel2:#1a1e23;
+    --line:#262b31;
+    --text:#eceff1;
+    --sub:#838d97;
+    --brass:#c9a466;
+    --red:#e0605a;
+    --green:#4fbf7a;
+    --sans:'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:520px; margin:0 auto;}
+  .top{display:flex; align-items:center; gap:10px; margin-bottom:20px;}
+  .top a{
+    color:var(--sub); text-decoration:none; font-size:14px;
+    border:1px solid var(--line); padding:6px 12px; border-radius:8px;
+  }
+  .top a:hover{border-color:var(--brass); color:var(--brass);}
+  h1{font-size:22px; font-weight:700; margin:0 0 4px;}
+  .sub{color:var(--sub); font-size:14px; margin:0 0 24px;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .panel-label{
+    font-size:12px; letter-spacing:1px; text-transform:uppercase;
+    color:var(--sub); margin-bottom:10px; font-weight:600;
+  }
+  textarea{
+    width:100%;
+    min-height:220px;
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:14px;
+    padding:12px;
+    resize:vertical;
+  }
+  textarea::placeholder{color:#4a5157;}
+
+  button{
+    width:100%;
+    margin-top:12px;
+    background:var(--brass);
+    color:#141414;
+    border:none;
+    border-radius:8px;
+    padding:13px;
+    font-size:15px;
+    font-weight:700;
+    font-family:var(--sans);
+    cursor:pointer;
+  }
+  button:hover{filter:brightness(1.06);}
+
+  .err{color:var(--red); font-size:13px; margin-top:10px; display:none;}
+
+  .price-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;}
+  .price-row .lbl{color:var(--sub); font-size:13px;}
+  .price-row .val{font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .price-src{color:var(--sub); font-size:11px;}
+
+  #results{display:none;}
+
+  .pos-card{margin-bottom:16px;}
+  .head-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .badge{font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px;}
+  .badge.long{background:rgba(79,191,122,.15); color:var(--green);}
+  .badge.short{background:rgba(224,96,90,.15); color:var(--red);}
+  .name{font-size:17px; font-weight:700;}
+  .exch{color:var(--sub); font-size:13px;}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .cell{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px;}
+  .cell .k{font-size:11px; color:var(--sub); margin-bottom:4px;}
+  .cell .v{font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+
+  .pnl-box{
+    text-align:center; padding:20px 16px; border-radius:10px; margin-bottom:14px;
+    background:var(--panel2); border:1px solid var(--line);
+  }
+  .pnl-box .amt{font-size:28px; font-weight:800; font-variant-numeric:tabular-nums;}
+  .pnl-box .pct{font-size:14px; margin-top:4px; font-weight:600;}
+  .pnl-box.up .amt, .pnl-box.up .pct{color:var(--green);}
+  .pnl-box.down .amt, .pnl-box.down .pct{color:var(--red);}
+
+  .liq-bar-wrap{margin-bottom:6px;}
+  .liq-bar-label{display:flex; justify-content:space-between; font-size:12px; color:var(--sub); margin-bottom:6px;}
+  .liq-bar{height:8px; background:var(--panel2); border-radius:4px; overflow:hidden; border:1px solid var(--line);}
+  .liq-bar-fill{height:100%; border-radius:4px; transition:width .3s ease;}
+
+  .fee-box{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);
+  }
+  .fee-title{font-size:12px; color:var(--sub); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;}
+  .fee-title .rate{color:var(--brass); font-weight:600;}
+  .fee-row{display:flex; justify-content:space-between; font-size:13px; padding:4px 0;}
+  .fee-row .k{color:var(--sub);}
+  .fee-row .v{font-variant-numeric:tabular-nums;}
+  .fee-total{
+    display:flex; justify-content:space-between; font-size:14px; font-weight:700;
+    padding-top:8px; margin-top:4px; border-top:1px solid var(--line);
+  }
+
+  .warn{
+    font-size:12px; color:var(--brass); margin-top:10px;
+    background:rgba(201,164,102,.1); border:1px solid rgba(201,164,102,.3);
+    padding:8px 10px; border-radius:8px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="index.html">← 홈</a></div>
+  <h1>수익 확인</h1>
+  <p class="sub">텔레그램 포지션 텍스트를 붙여넣으면 현재 손익과 수수료를 계산합니다 (여러 포지션 동시 가능)</p>
+
+  <div class="panel">
+    <div class="panel-label">현재가</div>
+    <div class="price-row">
+      <span class="lbl">BTC/USDT</span>
+      <span class="val" id="livePrice">불러오는 중…</span>
+    </div>
+    <div class="price-src" id="priceSrc"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-label">텔레그램 텍스트 붙여넣기</div>
+    <textarea id="input" placeholder="예)
+용1
+비트유닉스
+UID : 347473866
+롱
+충 : 10000
+평단 : 63460
+TP : 64833 (800) 800
+청산 : 46485
+
+————————
+디지파이넥스
+UID : 1750891319
+숏
+충 : 10000
+평단 : 63460
+TP : 62157 (800) 800
+청산 : 79279"></textarea>
+    <button id="parseBtn">계산하기</button>
+    <div class="err" id="errBox"></div>
+  </div>
+
+  <div id="results"></div>
+</div>
+
+<script>
+const LEVERAGE = 50;
+let currentPrice = null;
+
+// 거래소별 기본 수수료율 (테이커 기준, 시장가 진입/청산 가정)
+const FEE_RATES = {
+  '비트유닉스': 0.0006,
+  '디지파이넥스': 0.0005,
+  'default': 0.0006
+};
+
+const priceEl = document.getElementById('livePrice');
+const srcEl = document.getElementById('priceSrc');
+
+function setPrice(p, src){
+  currentPrice = p;
+  priceEl.textContent = '$' + p.toLocaleString('en-US', {maximumFractionDigits:1});
+  srcEl.textContent = src + ' · ' + new Date().toLocaleTimeString('ko-KR');
+}
+
+async function fetchBitunix(){
+  const res = await fetch('https://fapi.bitunix.com/api/v1/futures/market/tickers?symbols=BTCUSDT');
+  const data = await res.json();
+  return parseFloat(data.data[0].lastPrice);
+}
+async function fetchBinance(){
+  const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT');
+  const data = await res.json();
+  return parseFloat(data.price);
+}
+async function pollPriceFallback(){
+  try{
+    const p = await fetchBitunix();
+    setPrice(p, 'Bitunix (대체)');
+  }catch(e){
+    try{
+      const p = await fetchBinance();
+      setPrice(p, 'Binance (대체)');
+    }catch(e2){
+      srcEl.textContent = '가격 조회 실패 - 재시도 중…';
+    }
+  }
+}
+
+let fallbackInterval = null;
+function startFallbackPolling(){
+  if(fallbackInterval) return;
+  pollPriceFallback();
+  fallbackInterval = setInterval(pollPriceFallback, 5000);
+}
+function stopFallbackPolling(){
+  if(fallbackInterval){ clearInterval(fallbackInterval); fallbackInterval = null; }
+}
+
+let ws = null;
+let wsPingTimer = null;
+let wsWatchdog = null;
+
+function connectBitgetWS(){
+  try{
+    ws = new WebSocket('wss://ws.bitget.com/v2/ws/public');
+  }catch(e){
+    startFallbackPolling();
+    return;
+  }
+
+  ws.onopen = () => {
+    ws.send(JSON.stringify({
+      op: 'subscribe',
+      args: [{ instType: 'USDT-FUTURES', channel: 'ticker', instId: 'BTCUSDT' }]
+    }));
+    wsPingTimer = setInterval(() => { if(ws.readyState === 1) ws.send('ping'); }, 25000);
+  };
+
+  ws.onmessage = (evt) => {
+    if(evt.data === 'pong') return;
+    let msg;
+    try{ msg = JSON.parse(evt.data); }catch(e){ return; }
+    if(msg.data && msg.data[0] && msg.data[0].lastPr){
+      stopFallbackPolling();
+      setPrice(parseFloat(msg.data[0].lastPr), 'Bitget 실시간');
+      resetWatchdog();
+    }
+  };
+
+  ws.onerror = () => { startFallbackPolling(); };
+  ws.onclose = () => {
+    clearInterval(wsPingTimer);
+    startFallbackPolling();
+    setTimeout(connectBitgetWS, 4000);
+  };
+
+  resetWatchdog();
+}
+
+function resetWatchdog(){
+  clearTimeout(wsWatchdog);
+  // 10초 동안 웹소켓 갱신이 없으면 REST 폴백으로 전환
+  wsWatchdog = setTimeout(() => { startFallbackPolling(); }, 10000);
+}
+
+connectBitgetWS();
+
+function num(str){
+  if(!str) return null;
+  const n = parseFloat(String(str).replace(/,/g,''));
+  return isNaN(n) ? null : n;
+}
+function won(n){
+  return n.toLocaleString('en-US', {maximumFractionDigits:0});
+}
+
+function parseBlock(block){
+  const lines = block.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  if(lines.length < 2) return null;
+
+  const full = lines.join('\n');
+  const dirM = full.match(/(롱|숏)/);
+  const avgM = full.match(/평단\s*[:：]\s*([\d,.]+)/);
+  const liqM = full.match(/청산\s*[:：]\s*([\d,.]+)/);
+  if(!dirM || !avgM || !liqM) return null;
+
+  const uidM = full.match(/UID\s*[:：]?\s*(\d+)/);
+  const totalM = full.match(/충\s*[:：]\s*([\d,]+)/);
+  const tpLineM = full.match(/TP\s*[:：]\s*([\d,.]+)\s*\(\s*[\d,]+\s*\)\s*\+?\s*([\d,]+)?/);
+
+  // 이름/거래소 라인 추정: UID, 충, 평단, TP, 청산, 롱/숏이 아닌 줄들
+  const labelLines = lines.filter(l => !/^(UID|충|평단|TP|청산)\s*[:：]/.test(l) && !/^(롱|숏)$/.test(l));
+  const KNOWN_EXCHANGES = ['비트유닉스', '디지파이넥스', '비트겟', '바이낸스', '바이비트'];
+  const exchLine = labelLines.find(l => KNOWN_EXCHANGES.some(k => l.includes(k)));
+  const exch = exchLine || '';
+  const nameCandidates = labelLines.filter(l => l !== exchLine);
+  const name = nameCandidates[0] || exch || '이름없음';
+
+  const avg = num(avgM[1]);
+  const liq = num(liqM[1]);
+  const totalDeposit = totalM ? num(totalM[1]) : null;
+
+  const marginAfterParen = tpLineM ? num(tpLineM[2]) : null;
+  const marginUsed = marginAfterParen !== null ? marginAfterParen : totalDeposit;
+  if(marginUsed === null) return null;
+
+  return {
+    name, exch, uid: uidM ? uidM[1] : '-',
+    direction: dirM[1], avg, liq, tp: tpLineM ? num(tpLineM[1]) : null, totalDeposit, marginUsed
+  };
+}
+
+function parseText(text){
+  const blocks = text.split(/^[-–—]{3,}$/m);
+  const positions = [];
+  for(const b of blocks){
+    const pos = parseBlock(b);
+    if(pos) positions.push(pos);
+  }
+  if(positions.length === 0){
+    throw new Error('포지션 정보를 찾지 못했습니다. 텍스트 형식을 확인해주세요.');
+  }
+  return positions;
+}
+
+function getFeeRate(exch){
+  for(const key in FEE_RATES){
+    if(exch && exch.includes(key)) return FEE_RATES[key];
+  }
+  return FEE_RATES.default;
+}
+
+function renderCard(pos, idx){
+  const dirClass = pos.direction === '롱' ? 'long' : 'short';
+
+  const priceChangePct = pos.direction === '롱'
+    ? (currentPrice - pos.avg) / pos.avg
+    : (pos.avg - currentPrice) / pos.avg;
+  const pnlAmount = priceChangePct * LEVERAGE * pos.marginUsed;
+  const pnlPct = priceChangePct * LEVERAGE * 100;
+  const pnlUp = pnlAmount >= 0;
+
+  let liqDistPct = pos.direction === '롱'
+    ? (currentPrice - pos.liq) / currentPrice * 100
+    : (pos.liq - currentPrice) / currentPrice * 100;
+  liqDistPct = Math.max(0, Math.min(100, liqDistPct));
+  const barColor = liqDistPct < 5 ? 'var(--red)' : liqDistPct < 15 ? 'var(--brass)' : 'var(--green)';
+
+  // 수수료 계산: notional = 증거금 x 레버리지 (진입가 기준), 청산(종료) notional은 현재가 기준으로 환산
+  const feeRate = getFeeRate(pos.exch);
+  const qty = (pos.marginUsed * LEVERAGE) / pos.avg; // BTC 수량
+  const entryFee = qty * pos.avg * feeRate;
+  const exitFee = qty * currentPrice * feeRate;
+  const totalFee = entryFee + exitFee;
+
+  const tpDisplay = pos.tp !== null ? won(pos.tp) : '-';
+
+  return `
+  <div class="panel pos-card">
+    <div class="head-row">
+      <span class="badge ${dirClass}">${pos.direction}</span>
+      <div>
+        <div class="name">${pos.name}</div>
+        <div class="exch">${pos.exch ? pos.exch + ' · ' : ''}UID ${pos.uid}</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="cell"><div class="k">평단</div><div class="v">${won(pos.avg)}</div></div>
+      <div class="cell"><div class="k">TP 목표가</div><div class="v">${tpDisplay}</div></div>
+      <div class="cell"><div class="k">진입 증거금</div><div class="v">${won(pos.marginUsed)} USDT</div></div>
+      <div class="cell"><div class="k">총 예치금 (충)</div><div class="v">${pos.totalDeposit !== null ? won(pos.totalDeposit) + ' USDT' : '-'}</div></div>
+      <div class="cell"><div class="k">청산가</div><div class="v">${won(pos.liq)}</div></div>
+    </div>
+
+    <div class="pnl-box ${pnlUp ? 'up' : 'down'}">
+      <div class="amt">${pnlUp ? '+' : ''}${won(pnlAmount)} USDT</div>
+      <div class="pct">${pnlUp ? '+' : ''}${pnlPct.toFixed(2)}%</div>
+    </div>
+
+    <div class="liq-bar-wrap">
+      <div class="liq-bar-label"><span>청산까지 거리</span><span>${liqDistPct.toFixed(1)}%</span></div>
+      <div class="liq-bar"><div class="liq-bar-fill" style="width:${Math.min(liqDistPct*3,100)}%; background:${barColor};"></div></div>
+    </div>
+
+    <div class="fee-box">
+      <div class="fee-title">
+        <span>예상 거래 수수료 (시장가 기준)</span>
+        <span class="rate">${(feeRate*100).toFixed(2)}%</span>
+      </div>
+      <div class="fee-row"><span class="k">진입 수수료</span><span class="v">${entryFee.toFixed(2)} USDT</span></div>
+      <div class="fee-row"><span class="k">청산(종료) 수수료</span><span class="v">${exitFee.toFixed(2)} USDT</span></div>
+      <div class="fee-total"><span>합계</span><span>${totalFee.toFixed(2)} USDT</span></div>
+    </div>
+
+  </div>`;
+}
+
+document.getElementById('parseBtn').addEventListener('click', () => {
+  const errBox = document.getElementById('errBox');
+  const resultsBox = document.getElementById('results');
+  errBox.style.display = 'none';
+  resultsBox.style.display = 'none';
+  resultsBox.innerHTML = '';
+
+  if(currentPrice === null){
+    errBox.textContent = '현재가를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  try{
+    const text = document.getElementById('input').value;
+    const positions = parseText(text);
+    resultsBox.innerHTML = positions.map(renderCard).join('');
+    resultsBox.style.display = 'block';
+  }catch(e){
+    errBox.textContent = e.message;
+    errBox.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
