@@ -35,7 +35,23 @@
   }
   .top a:hover{border-color:var(--brass); color:var(--brass);}
   h1{font-size:22px; font-weight:700; margin:0 0 4px;}
-  .sub{color:var(--sub); font-size:14px; margin:0 0 20px;}
+  .sub{color:var(--sub); font-size:14px; margin:0 0 18px;}
+
+  .day-tabs{
+    display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:14px;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .day-tabs::-webkit-scrollbar{display:none;}
+  .day-tab{
+    flex-shrink:0;
+    background:var(--panel); border:1px solid var(--line); color:var(--sub);
+    font-size:13px; padding:8px 14px; border-radius:10px; cursor:pointer;
+    font-family:var(--sans); user-select:none; text-align:center; line-height:1.3;
+  }
+  .day-tab .dow{display:block; font-size:11px; margin-top:1px;}
+  .day-tab.active{border-color:var(--brass); color:var(--brass); background:rgba(201,164,102,.1);}
+  .day-tab.today .dow{color:var(--green);}
+  .day-tab.today.active .dow{color:var(--brass);}
 
   .toolbar{
     display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px;
@@ -54,10 +70,9 @@
   }
   .status button:hover{border-color:var(--brass); color:var(--brass);}
 
-  .day-group{margin-bottom:18px;}
   .day-label{
-    font-size:13px; font-weight:700; color:var(--brass);
-    margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--line);
+    font-size:14px; font-weight:700; color:var(--brass);
+    margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid var(--line);
   }
 
   .event{
@@ -94,6 +109,8 @@
   <h1>경제 캘린더</h1>
   <p class="sub">이번 주 주요 경제지표 발표 일정 (한국시간 기준)</p>
 
+  <div class="day-tabs" id="dayTabs"></div>
+
   <div class="toolbar" id="impactFilter">
     <span class="chip active" data-impact="all">전체</span>
     <span class="chip" data-impact="High">★★★ 높음</span>
@@ -116,12 +133,119 @@ const IMPACT_STARS = {
   Low: '<span class="stars low">★☆☆</span>'
 };
 
+// 지표명 한국어 번역 사전 (ForexFactory 원문 → 한국어). 못 찾으면 원문 그대로 표시.
+const TITLE_KO = {
+  'CPI m/m': 'CPI (전월비)',
+  'CPI y/y': 'CPI (전년비)',
+  'Core CPI m/m': '근원 CPI (전월비)',
+  'Core CPI y/y': '근원 CPI (전년비)',
+  'Median CPI y/y': '중위 CPI (전년비)',
+  'Trimmed CPI y/y': '조정평균 CPI (전년비)',
+  'Common CPI y/y': '공통요인 CPI (전년비)',
+  'Final CPI y/y': '확정 CPI (전년비)',
+  'Final Core CPI y/y': '확정 근원 CPI (전년비)',
+  'National Core CPI y/y': '전국 근원 CPI (전년비)',
+  'RPI y/y': '소매물가지수 (전년비)',
+  'PPI Input m/m': '생산자물가 투입 (전월비)',
+  'PPI Input q/q': '생산자물가 투입 (전분기비)',
+  'PPI Output m/m': '생산자물가 산출 (전월비)',
+  'PPI Output q/q': '생산자물가 산출 (전분기비)',
+  'German PPI m/m': '독일 생산자물가 (전월비)',
+  'IPPI m/m': '산업생산자물가 (전월비)',
+  'NHPI m/m': '신규주택가격지수 (전월비)',
+  'RMPI m/m': '원자재물가지수 (전월비)',
+  'HPI y/y': '주택가격지수 (전년비)',
+  'Rightmove HPI m/m': '라이트무브 주택가격 (전월비)',
+  'New Home Prices m/m': '신규주택가격 (전월비)',
+
+  'FOMC Meeting Minutes': 'FOMC 의사록',
+  'ECB President Lagarde Speaks': 'ECB 라가르드 총재 연설',
+  'RBA Deputy Gov Hauser Speaks': 'RBA 하우저 부총재 연설',
+  'German Buba Monthly Report': '독일 분데스방크 월간 보고서',
+  'NBS Press Conference': '중국 국가통계국 기자회견',
+
+  'Empire State Manufacturing Index': '엠파이어스테이트 제조업지수',
+  'Philly Fed Manufacturing Index': '필라델피아 연은 제조업지수',
+  'NAHB Housing Market Index': 'NAHB 주택시장지수',
+  'CB Leading Index m/m': '경기선행지수 (전월비)',
+  'Flash Manufacturing PMI': '제조업 PMI 예비치',
+  'Flash Services PMI': '서비스업 PMI 예비치',
+  'French Flash Manufacturing PMI': '프랑스 제조업 PMI 예비치',
+  'French Flash Services PMI': '프랑스 서비스업 PMI 예비치',
+  'German Flash Manufacturing PMI': '독일 제조업 PMI 예비치',
+  'German Flash Services PMI': '독일 서비스업 PMI 예비치',
+  'ZEW Economic Sentiment': 'ZEW 경기기대지수',
+  'German ZEW Economic Sentiment': '독일 ZEW 경기기대지수',
+  'CBI Industrial Order Expectations': 'CBI 산업수주기대지수',
+  'GfK Consumer Confidence': 'GfK 소비자신뢰지수',
+  'Consumer Confidence': '소비자신뢰지수',
+  'Westpac Consumer Sentiment': '웨스트팩 소비자심리지수',
+  'MI Inflation Expectations': '기대인플레이션',
+
+  'Building Permits': '건축허가건수',
+  'Housing Starts': '주택착공건수',
+  'Pending Home Sales m/m': '펜딩홈세일즈 (전월비)',
+  'Capacity Utilization Rate': '설비가동률',
+  'Industrial Production m/m': '산업생산 (전월비)',
+  'Industrial Production y/y': '산업생산 (전년비)',
+  'Revised Industrial Production m/m': '산업생산 수정치 (전월비)',
+  'Tertiary Industry Activity m/m': '3차산업활동지수 (전월비)',
+  'Core Machinery Orders m/m': '핵심 기계수주 (전월비)',
+
+  'Unemployment Claims': '신규 실업수당청구건수',
+  'ADP Weekly Employment Change': 'ADP 주간 고용변화',
+  'Claimant Count Change': '실업수당청구 변화',
+  'Employment Change': '고용변화',
+  'Unemployment Rate': '실업률',
+  'Average Earnings Index 3m/y': '평균소득지수 (3개월/전년비)',
+  'Wage Price Index q/q': '임금지수 (전분기비)',
+
+  'Retail Sales m/m': '소매판매 (전월비)',
+  'Retail Sales y/y': '소매판매 (전년비)',
+  'Core Retail Sales m/m': '근원 소매판매 (전월비)',
+  'Import Prices m/m': '수입물가 (전월비)',
+
+  'Trade Balance': '무역수지',
+  'Current Account': '경상수지',
+  'Foreign Securities Purchases': '해외증권 순매수',
+  'Foreign Direct Investment ytd/y': '외국인직접투자 (연누계)',
+  'Fixed Asset Investment ytd/y': '고정자산투자 (연누계)',
+  'TIC Long-Term Purchases': 'TIC 장기증권 순매수',
+  'Public Sector Net Borrowing': '공공부문 순차입',
+
+  'Crude Oil Inventories': '원유재고',
+  'Natural Gas Storage': '천연가스 재고',
+  'API Weekly Statistical Bulletin': 'API 주간 재고보고서',
+  'GDT Price Index': '글로벌유제품경매 가격지수',
+
+  '10-y Bond Auction': '10년물 국채 입찰',
+  'German 10-y Bond Auction': '독일 10년물 국채 입찰',
+  '1-y Loan Prime Rate': '1년 대출우대금리(LPR)',
+  '5-y Loan Prime Rate': '5년 대출우대금리(LPR)',
+
+  'BusinessNZ Services Index': '뉴질랜드 서비스업지수',
+  'FPI m/m': '식품가격지수 (전월비)',
+  'Prelim GDP Price Index y/y': 'GDP 디플레이터 예비치 (전년비)',
+  'Prelim GDP q/q': 'GDP 예비치 (전분기비)',
+  'Credit Card Spending y/y': '신용카드 지출 (전년비)'
+};
+
+function translateTitle(title){
+  return TITLE_KO[title] || title;
+}
+
 let allEvents = [];
 let currentFilter = 'all';
+let selectedDateKey = null;
 
 // calendar-data.json은 GitHub Actions가 6시간마다 서버에서 미리 가져와 저장소에 저장해두는 파일
 // (브라우저가 아닌 GitHub 서버가 요청하므로 CORS 문제 없음, 같은 출처 파일이라 항상 로드됨)
 const DATA_URL = 'calendar-data.json?t=' + Date.now();
+
+function kstDateKey(dateObj){
+  // YYYY-MM-DD 형태의 정렬 가능한 키 (한국시간 기준)
+  return dateObj.toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+}
 
 async function loadCalendar(){
   const statusEl = document.getElementById('statusText');
@@ -138,6 +262,14 @@ async function loadCalendar(){
     allEvents = data.map(e => ({...e, dateObj: new Date(e.date)}))
                      .sort((a,b) => a.dateObj - b.dateObj);
     statusEl.textContent = `이번 주 ${allEvents.length}개 일정 · ${new Date().toLocaleTimeString('ko-KR')} 기준`;
+
+    const todayKey = kstDateKey(new Date());
+    const availableKeys = [...new Set(allEvents.map(e => kstDateKey(e.dateObj)))].sort();
+    selectedDateKey = availableKeys.includes(todayKey)
+      ? todayKey
+      : (availableKeys.find(k => k > todayKey) || availableKeys[0]);
+
+    renderTabs();
     render();
   }catch(e){
     statusEl.textContent = '';
@@ -145,59 +277,75 @@ async function loadCalendar(){
   }
 }
 
+function renderTabs(){
+  const tabsEl = document.getElementById('dayTabs');
+  const todayKey = kstDateKey(new Date());
+  const keys = [...new Set(allEvents.map(e => kstDateKey(e.dateObj)))].sort();
+
+  tabsEl.innerHTML = keys.map(key => {
+    const [y, m, d] = key.split('-').map(Number);
+    const md = `${m}/${d}`;
+    const dow = new Date(key + 'T12:00:00+09:00').toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short' });
+    const isToday = key === todayKey;
+    const isActive = key === selectedDateKey;
+    return `<div class="day-tab ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}" data-key="${key}">
+      ${md}<span class="dow">${isToday ? '오늘' : dow}</span>
+    </div>`;
+  }).join('');
+}
+
 function render(){
   const calEl = document.getElementById('calendar');
   const now = new Date();
 
-  const filtered = currentFilter === 'all'
-    ? allEvents
-    : allEvents.filter(e => e.impact === currentFilter);
+  let filtered = allEvents.filter(e => kstDateKey(e.dateObj) === selectedDateKey);
+  if(currentFilter !== 'all'){
+    filtered = filtered.filter(e => e.impact === currentFilter);
+  }
 
   if(filtered.length === 0){
     calEl.innerHTML = '<div class="empty">해당 조건의 일정이 없습니다.</div>';
     return;
   }
 
-  // 한국시간(Asia/Seoul) 기준으로 날짜별 그룹핑 — 수동 시차 계산 없이 브라우저 표준 타임존 변환 사용
-  const groups = {};
-  for(const e of filtered){
-    const kstDateKey = e.dateObj.toLocaleDateString('ko-KR', {
-      timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
-    });
-    if(!groups[kstDateKey]) groups[kstDateKey] = [];
-    groups[kstDateKey].push(e);
-  }
+  const dateLabel = filtered[0].dateObj.toLocaleDateString('ko-KR', {
+    timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+  });
 
-  let html = '';
-  for(const dateKey in groups){
-    html += `<div class="day-group"><div class="day-label">${dateKey}</div>`;
-    for(const e of groups[dateKey]){
-      const timeStr = e.dateObj.toLocaleTimeString('ko-KR', {
-        timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false
-      });
-      const isPast = e.dateObj < now;
-      const stars = IMPACT_STARS[e.impact] || '';
-      html += `
-        <div class="event ${isPast ? 'past' : ''}">
-          <div class="event-time">${timeStr}</div>
-          <div class="event-body">
-            <div class="event-head">
-              <span class="ccy">${e.country}</span>
-              ${stars}
-            </div>
-            <div class="event-title">${e.title}</div>
-            ${(e.forecast || e.previous) ? `
-            <div class="event-vals">
-              ${e.forecast ? `<span>예상: <b>${e.forecast}</b></span>` : ''}
-              ${e.previous ? `<span>이전: <b>${e.previous}</b></span>` : ''}
-            </div>` : ''}
+  let html = `<div class="day-label">${dateLabel}</div>`;
+  for(const e of filtered){
+    const timeStr = e.dateObj.toLocaleTimeString('ko-KR', {
+      timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    const isPast = e.dateObj < now;
+    const stars = IMPACT_STARS[e.impact] || '';
+    html += `
+      <div class="event ${isPast ? 'past' : ''}">
+        <div class="event-time">${timeStr}</div>
+        <div class="event-body">
+          <div class="event-head">
+            <span class="ccy">${e.country}</span>
+            ${stars}
           </div>
-        </div>`;
-    }
-    html += `</div>`;
+          <div class="event-title">${translateTitle(e.title)}</div>
+          ${(e.forecast || e.previous) ? `
+          <div class="event-vals">
+            ${e.forecast ? `<span>예상: <b>${e.forecast}</b></span>` : ''}
+            ${e.previous ? `<span>이전: <b>${e.previous}</b></span>` : ''}
+          </div>` : ''}
+        </div>
+      </div>`;
   }
   calEl.innerHTML = html;
 }
+
+document.getElementById('dayTabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.day-tab');
+  if(!tab) return;
+  selectedDateKey = tab.dataset.key;
+  renderTabs();
+  render();
+});
 
 document.getElementById('impactFilter').addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
