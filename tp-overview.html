@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>수익 확인 · SMK1004</title>
+<title>포지션 한눈에 · SMK1004</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
 <style>
   :root{
@@ -27,7 +27,7 @@
     font-family:var(--sans);
     padding:24px 16px 60px;
   }
-  .wrap{max-width:520px; margin:0 auto;}
+  .wrap{max-width:640px; margin:0 auto;}
   .top{display:flex; align-items:center; gap:10px; margin-bottom:20px;}
   .top a{
     color:var(--sub); text-decoration:none; font-size:14px;
@@ -35,7 +35,7 @@
   }
   .top a:hover{border-color:var(--brass); color:var(--brass);}
   h1{font-size:22px; font-weight:700; margin:0 0 4px;}
-  .sub{color:var(--sub); font-size:14px; margin:0 0 24px;}
+  .sub{color:var(--sub); font-size:14px; margin:0 0 20px;}
 
   .panel{
     background:var(--panel);
@@ -48,6 +48,11 @@
     font-size:12px; letter-spacing:1px; text-transform:uppercase;
     color:var(--sub); margin-bottom:10px; font-weight:600;
   }
+  .price-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;}
+  .price-row .lbl{color:var(--sub); font-size:13px;}
+  .price-row .val{font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .price-src{color:var(--sub); font-size:11px;}
+
   textarea{
     width:100%;
     min-height:220px;
@@ -61,20 +66,6 @@
     resize:vertical;
   }
   textarea::placeholder{color:#4a5157;}
-
-  input[type="number"]{
-    width:100%;
-    background:var(--panel2);
-    border:1px solid var(--line);
-    border-radius:8px;
-    color:var(--text);
-    font-family:var(--sans);
-    font-size:15px;
-    padding:13px 12px;
-    font-variant-numeric:tabular-nums;
-  }
-  input[type="number"]::placeholder{color:#4a5157; font-variant-numeric:normal;}
-  input[type="number"]:focus{outline:none; border-color:var(--brass);}
 
   button{
     width:100%;
@@ -93,65 +84,52 @@
 
   .err{color:var(--red); font-size:13px; margin-top:10px; display:none;}
 
-  .price-row{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px;}
-  .price-row .lbl{color:var(--sub); font-size:13px;}
-  .price-row .val{font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
-  .price-src{color:var(--sub); font-size:11px;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  thead th{
+    text-align:left; color:var(--sub); font-weight:600; font-size:11px;
+    letter-spacing:.5px; text-transform:uppercase;
+    padding:0 8px 8px; border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.urgent{background:rgba(224,96,90,.08);}
+  tbody tr.close{background:rgba(201,164,102,.08);}
 
-  #results{display:none;}
-
-  .pos-card{margin-bottom:16px;}
-  .head-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
-  .badge{font-size:12px; font-weight:700; padding:4px 10px; border-radius:6px;}
+  .set-name{font-weight:700; font-size:13px;}
+  .set-exch{color:var(--sub); font-size:11px;}
+  .badge{font-size:11px; font-weight:700; padding:2px 7px; border-radius:5px; display:inline-block;}
   .badge.long{background:rgba(79,191,122,.15); color:var(--green);}
   .badge.short{background:rgba(224,96,90,.15); color:var(--red);}
-  .name{font-size:17px; font-weight:700;}
-  .exch{color:var(--sub); font-size:13px;}
+  .num{font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .dist{font-weight:700; font-variant-numeric:tabular-nums;}
+  .dist.urgent{color:var(--red);}
+  .dist.close{color:var(--brass);}
+  .dist.far{color:var(--sub);}
+  .pnl-up{color:var(--green);}
+  .pnl-down{color:var(--red);}
 
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
-  .cell{background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 12px;}
-  .cell .k{font-size:11px; color:var(--sub); margin-bottom:4px;}
-  .cell .v{font-size:15px; font-weight:600; font-variant-numeric:tabular-nums;}
+  .empty{color:var(--sub); font-size:14px; text-align:center; padding:30px 0;}
 
-  .pnl-box{
-    text-align:center; padding:20px 16px; border-radius:10px; margin-bottom:14px;
-    background:var(--panel2); border:1px solid var(--line);
-  }
-  .pnl-box .amt{font-size:28px; font-weight:800; font-variant-numeric:tabular-nums;}
-  .pnl-box .pct{font-size:14px; margin-top:4px; font-weight:600;}
-  .pnl-box.up .amt, .pnl-box.up .pct{color:var(--green);}
-  .pnl-box.down .amt, .pnl-box.down .pct{color:var(--red);}
-
-  .liq-bar-wrap{margin-bottom:6px;}
-  .liq-bar-label{display:flex; justify-content:space-between; font-size:12px; color:var(--sub); margin-bottom:6px;}
-  .liq-bar{height:8px; background:var(--panel2); border-radius:4px; overflow:hidden; border:1px solid var(--line);}
-  .liq-bar-fill{height:100%; border-radius:4px; transition:width .3s ease;}
-
-  .fee-box{
-    margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);
-  }
-  .fee-title{font-size:12px; color:var(--sub); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;}
-  .fee-title .rate{color:var(--brass); font-weight:600;}
-  .fee-row{display:flex; justify-content:space-between; font-size:13px; padding:4px 0;}
-  .fee-row .k{color:var(--sub);}
-  .fee-row .v{font-variant-numeric:tabular-nums;}
-  .fee-total{
-    display:flex; justify-content:space-between; font-size:14px; font-weight:700;
-    padding-top:8px; margin-top:4px; border-top:1px solid var(--line);
-  }
-
-  .warn{
-    font-size:12px; color:var(--brass); margin-top:10px;
-    background:rgba(201,164,102,.1); border:1px solid rgba(201,164,102,.3);
-    padding:8px 10px; border-radius:8px;
+  @media (max-width: 560px){
+    table, thead, tbody, th, td, tr{display:block;}
+    thead{display:none;}
+    tbody tr{
+      background:var(--panel2); border:1px solid var(--line); border-radius:10px;
+      padding:12px; margin-bottom:8px;
+    }
+    tbody tr.urgent{border-color:var(--red);}
+    tbody tr.close{border-color:var(--brass);}
+    tbody td{border:none; padding:3px 0;}
+    .mobile-row{display:flex; justify-content:space-between; align-items:center;}
+    .mobile-label{color:var(--sub); font-size:11px;}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="top"><a href="index.html">← 홈</a></div>
-  <h1>수익 확인</h1>
-  <p class="sub">텔레그램 포지션 텍스트를 붙여넣으면 현재 손익과 수수료를 계산합니다 (여러 포지션 동시 가능)</p>
+  <h1>포지션 한눈에</h1>
+  <p class="sub">모든 세트를 한 번에 붙여넣으면 손익 · 익절까지 거리 · 청산까지 거리를 한 테이블로 보여줍니다</p>
 
   <div class="panel">
     <div class="panel-label">현재가</div>
@@ -163,12 +141,7 @@
   </div>
 
   <div class="panel">
-    <div class="panel-label">가격 시뮬레이션 (선택)</div>
-    <input type="number" id="simPrice" placeholder="원하는 가격 입력 (예: 65000) · 비워두면 실시간 가격 사용">
-  </div>
-
-  <div class="panel">
-    <div class="panel-label">텔레그램 텍스트 붙여넣기</div>
+    <div class="panel-label">텔레그램 텍스트 붙여넣기 (여러 세트 한 번에 가능)</div>
     <textarea id="input" placeholder="예)
 용1
 비트유닉스
@@ -180,31 +153,49 @@ TP : 64833 (800) 800
 청산 : 46485
 
 ————————
+용1
 디지파이넥스
 UID : 1750891319
 숏
 충 : 10000
 평단 : 63460
 TP : 62157 (800) 800
-청산 : 79279"></textarea>
-    <button id="parseBtn">계산하기</button>
+청산 : 79279
+
+————————
+용2
+비트유닉스
+UID : 000000
+롱
+충 : 10000
+평단 : 63100
+TP : 65200 (800) 800
+청산 : 45900"></textarea>
+    <button id="parseBtn">한눈에 보기</button>
     <div class="err" id="errBox"></div>
   </div>
 
-  <div id="basisNote" class="price-src" style="display:none; margin-bottom:10px;"></div>
-  <div id="results"></div>
+  <div class="panel" id="resultPanel" style="display:none;">
+    <div class="panel-label">전체 포지션 (익절까지 가까운 순)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>세트</th>
+          <th>방향</th>
+          <th>평단</th>
+          <th>손익</th>
+          <th>익절가</th>
+          <th>익절까지</th>
+          <th>청산까지</th>
+        </tr>
+      </thead>
+      <tbody id="resultBody"></tbody>
+    </table>
+  </div>
 </div>
 
 <script>
-const LEVERAGE = 50;
 let currentPrice = null;
-
-// 거래소별 기본 수수료율 (테이커 기준, 시장가 진입/청산 가정)
-const FEE_RATES = {
-  '비트유닉스': 0.0006,
-  '디지파이넥스': 0.0005,
-  'default': 0.0006
-};
 
 const priceEl = document.getElementById('livePrice');
 const srcEl = document.getElementById('priceSrc');
@@ -213,6 +204,7 @@ function setPrice(p, src){
   currentPrice = p;
   priceEl.textContent = '$' + p.toLocaleString('en-US', {maximumFractionDigits:1});
   srcEl.textContent = src + ' · ' + new Date().toLocaleTimeString('ko-KR');
+  if(lastPositions) renderTable(lastPositions);
 }
 
 async function fetchBitunix(){
@@ -292,7 +284,6 @@ function connectBitgetWS(){
 
 function resetWatchdog(){
   clearTimeout(wsWatchdog);
-  // 10초 동안 웹소켓 갱신이 없으면 REST 폴백으로 전환
   wsWatchdog = setTimeout(() => { startFallbackPolling(); }, 10000);
 }
 
@@ -326,10 +317,11 @@ function parseFields(lines){
   const dirM = full.match(/(롱|숏)/);
   const avgM = full.match(/평단\s*[:：]\s*([\d,.]+)/);
   const liqM = full.match(/청산\s*[:：]\s*([\d,.]+)/);
-  if(!dirM || !avgM || !liqM) return null;
+  if(!dirM || !avgM) return null;
 
   const uidM = full.match(/UID\s*[:：]?\s*(\d+)/);
   const totalM = full.match(/충\s*[:：]\s*([\d,]+)/);
+
   const tpLine = lines.find(l => /^TP\s*[:：]/.test(l));
   const tpPriceM = tpLine ? tpLine.match(/TP\s*[:：]\s*([\d,.]+)/) : null;
   const tp = tpPriceM ? num(tpPriceM[1]) : null;
@@ -352,15 +344,13 @@ function parseFields(lines){
   const nameCandidates = labelLines.filter(l => l !== exchLine);
   const name = nameCandidates[0] || exch || '이름없음';
 
-  const avg = num(avgM[1]);
-  const liq = num(liqM[1]);
   const totalDeposit = totalM ? num(totalM[1]) : null;
   const marginUsed = marginFromTp !== null ? marginFromTp : totalDeposit;
-  if(marginUsed === null) return null;
 
   return {
     name, exch, uid: uidM ? uidM[1] : '-',
-    direction: dirM[1], avg, liq, tp, totalDeposit, marginUsed
+    direction: dirM[1], avg: num(avgM[1]), tp,
+    liq: liqM ? num(liqM[1]) : null, marginUsed
   };
 }
 
@@ -405,117 +395,98 @@ function parseText(text){
   }
 
   if(positions.length === 0){
-    throw new Error('포지션 정보를 찾지 못했습니다. 텍스트 형식을 확인해주세요.');
+    throw new Error('세트 정보를 찾지 못했습니다. 텍스트 형식을 확인해주세요.');
   }
   return positions;
 }
 
-function getFeeRate(exch){
-  for(const key in FEE_RATES){
-    if(exch && exch.includes(key)) return FEE_RATES[key];
+let lastPositions = null;
+
+const LEVERAGE = 50;
+
+function renderTable(positions){
+  const tbody = document.getElementById('resultBody');
+  const resultPanel = document.getElementById('resultPanel');
+
+  if(currentPrice === null){
+    return;
   }
-  return FEE_RATES.default;
-}
 
-function renderCard(pos, price){
-  const dirClass = pos.direction === '롱' ? 'long' : 'short';
+  const rows = positions.map(pos => {
+    const tpDistPct = pos.direction === '롱'
+      ? (pos.tp - currentPrice) / currentPrice * 100
+      : (currentPrice - pos.tp) / currentPrice * 100;
 
-  const priceChangePct = pos.direction === '롱'
-    ? (price - pos.avg) / pos.avg
-    : (pos.avg - price) / pos.avg;
-  const pnlAmount = priceChangePct * LEVERAGE * pos.marginUsed;
-  const pnlPct = priceChangePct * LEVERAGE * 100;
-  const pnlUp = pnlAmount >= 0;
+    const priceChangePct = pos.direction === '롱'
+      ? (currentPrice - pos.avg) / pos.avg
+      : (pos.avg - currentPrice) / pos.avg;
+    const pnlAmount = pos.marginUsed !== null ? priceChangePct * LEVERAGE * pos.marginUsed : null;
+    const pnlPct = priceChangePct * LEVERAGE * 100;
 
-  let liqDistPct = pos.direction === '롱'
-    ? (price - pos.liq) / price * 100
-    : (pos.liq - price) / price * 100;
-  liqDistPct = Math.max(0, Math.min(100, liqDistPct));
-  const barColor = liqDistPct < 5 ? 'var(--red)' : liqDistPct < 15 ? 'var(--brass)' : 'var(--green)';
+    let liqDistPct = null;
+    if(pos.liq !== null){
+      liqDistPct = pos.direction === '롱'
+        ? (currentPrice - pos.liq) / currentPrice * 100
+        : (pos.liq - currentPrice) / currentPrice * 100;
+    }
 
-  // 수수료 계산: notional = 증거금 x 레버리지 (진입가 기준), 청산(종료) notional은 적용가 기준으로 환산
-  const feeRate = getFeeRate(pos.exch);
-  const qty = (pos.marginUsed * LEVERAGE) / pos.avg; // BTC 수량
-  const entryFee = qty * pos.avg * feeRate;
-  const exitFee = qty * price * feeRate;
-  const totalFee = entryFee + exitFee;
+    return { ...pos, tpDistPct, pnlAmount, pnlPct, liqDistPct };
+  });
 
-  const tpDisplay = pos.tp !== null ? won(pos.tp) : '-';
+  rows.sort((a, b) => Math.abs(a.tpDistPct) - Math.abs(b.tpDistPct));
 
-  return `
-  <div class="panel pos-card">
-    <div class="head-row">
-      <span class="badge ${dirClass}">${pos.direction}</span>
-      <div>
-        <div class="name">${pos.name}</div>
-        <div class="exch">${pos.exch ? pos.exch + ' · ' : ''}UID ${pos.uid}</div>
-      </div>
-    </div>
+  tbody.innerHTML = rows.map(r => {
+    const dirClass = r.direction === '롱' ? 'long' : 'short';
+    const urgency = Math.abs(r.tpDistPct) < 0.5 ? 'urgent' : Math.abs(r.tpDistPct) < 2 ? 'close' : 'far';
+    const rowClass = urgency === 'urgent' ? 'urgent' : urgency === 'close' ? 'close' : '';
+    const tpDistLabel = (r.tpDistPct >= 0 ? '' : '도달 ') + Math.abs(r.tpDistPct).toFixed(2) + '%';
 
-    <div class="grid">
-      <div class="cell"><div class="k">평단</div><div class="v">${won(pos.avg)}</div></div>
-      <div class="cell"><div class="k">TP 목표가</div><div class="v">${tpDisplay}</div></div>
-      <div class="cell"><div class="k">진입 증거금</div><div class="v">${won(pos.marginUsed)} USDT</div></div>
-      <div class="cell"><div class="k">총 예치금 (충)</div><div class="v">${pos.totalDeposit !== null ? won(pos.totalDeposit) + ' USDT' : '-'}</div></div>
-      <div class="cell"><div class="k">청산가</div><div class="v">${won(pos.liq)}</div></div>
-    </div>
+    const pnlUp = r.pnlAmount !== null && r.pnlAmount >= 0;
+    const pnlLabel = r.pnlAmount !== null
+      ? `${pnlUp ? '+' : ''}${won(r.pnlAmount)} <span style="opacity:.7">(${pnlUp ? '+' : ''}${r.pnlPct.toFixed(1)}%)</span>`
+      : '-';
 
-    <div class="pnl-box ${pnlUp ? 'up' : 'down'}">
-      <div class="amt">${pnlUp ? '+' : ''}${won(pnlAmount)} USDT</div>
-      <div class="pct">${pnlUp ? '+' : ''}${pnlPct.toFixed(2)}%</div>
-    </div>
+    let liqLabel = '-';
+    let liqClass = '';
+    if(r.liqDistPct !== null){
+      liqClass = r.liqDistPct < 5 ? 'urgent' : r.liqDistPct < 15 ? 'close' : 'far';
+      liqLabel = Math.abs(r.liqDistPct).toFixed(1) + '%';
+    }
 
-    <div class="liq-bar-wrap">
-      <div class="liq-bar-label"><span>청산까지 거리</span><span>${liqDistPct.toFixed(1)}%</span></div>
-      <div class="liq-bar"><div class="liq-bar-fill" style="width:${Math.min(liqDistPct*3,100)}%; background:${barColor};"></div></div>
-    </div>
+    return `
+    <tr class="${rowClass}">
+      <td>
+        <div class="mobile-label">세트</div>
+        <div class="set-name">${r.name}</div>
+        <div class="set-exch">${r.exch || '-'}</div>
+      </td>
+      <td><div class="mobile-label">방향</div><span class="badge ${dirClass}">${r.direction}</span></td>
+      <td><div class="mobile-label">평단</div><span class="num">${won(r.avg)}</span></td>
+      <td><div class="mobile-label">손익</div><span class="num ${pnlUp ? 'pnl-up' : 'pnl-down'}">${pnlLabel}</span></td>
+      <td><div class="mobile-label">익절가</div><span class="num">${won(r.tp)}</span></td>
+      <td><div class="mobile-label">익절까지</div><span class="dist ${urgency}">${tpDistLabel}</span></td>
+      <td><div class="mobile-label">청산까지</div><span class="dist ${liqClass}">${liqLabel}</span></td>
+    </tr>`;
+  }).join('');
 
-    <div class="fee-box">
-      <div class="fee-title">
-        <span>예상 거래 수수료 (시장가 기준)</span>
-        <span class="rate">${(feeRate*100).toFixed(2)}%</span>
-      </div>
-      <div class="fee-row"><span class="k">진입 수수료</span><span class="v">${entryFee.toFixed(2)} USDT</span></div>
-      <div class="fee-row"><span class="k">청산(종료) 수수료</span><span class="v">${exitFee.toFixed(2)} USDT</span></div>
-      <div class="fee-total"><span>합계</span><span>${totalFee.toFixed(2)} USDT</span></div>
-    </div>
-
-  </div>`;
+  resultPanel.style.display = 'block';
 }
 
 document.getElementById('parseBtn').addEventListener('click', () => {
   const errBox = document.getElementById('errBox');
-  const resultsBox = document.getElementById('results');
-  const basisNote = document.getElementById('basisNote');
   errBox.style.display = 'none';
-  resultsBox.style.display = 'none';
-  resultsBox.innerHTML = '';
-  basisNote.style.display = 'none';
 
-  const simInput = document.getElementById('simPrice').value;
-  const simPrice = simInput.trim() !== '' ? parseFloat(simInput.replace(/,/g,'')) : null;
-
-  let basisPrice;
-  if(simPrice !== null && !isNaN(simPrice) && simPrice > 0){
-    basisPrice = simPrice;
-    basisNote.textContent = `시뮬레이션 적용가: $${basisPrice.toLocaleString('en-US')} (직접 입력)`;
-    basisNote.style.display = 'block';
-  }else{
-    if(currentPrice === null){
-      errBox.textContent = '현재가를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
-      errBox.style.display = 'block';
-      return;
-    }
-    basisPrice = currentPrice;
-    basisNote.textContent = `적용가: $${basisPrice.toLocaleString('en-US')} (실시간 가격)`;
-    basisNote.style.display = 'block';
+  if(currentPrice === null){
+    errBox.textContent = '현재가를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+    errBox.style.display = 'block';
+    return;
   }
 
   try{
     const text = document.getElementById('input').value;
     const positions = parseText(text);
-    resultsBox.innerHTML = positions.map(pos => renderCard(pos, basisPrice)).join('');
-    resultsBox.style.display = 'block';
+    lastPositions = positions;
+    renderTable(positions);
   }catch(e){
     errBox.textContent = e.message;
     errBox.style.display = 'block';
