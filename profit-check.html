@@ -62,6 +62,20 @@
   }
   textarea::placeholder{color:#4a5157;}
 
+  input[type="number"]{
+    width:100%;
+    background:var(--panel2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:15px;
+    padding:13px 12px;
+    font-variant-numeric:tabular-nums;
+  }
+  input[type="number"]::placeholder{color:#4a5157; font-variant-numeric:normal;}
+  input[type="number"]:focus{outline:none; border-color:var(--brass);}
+
   button{
     width:100%;
     margin-top:12px;
@@ -149,6 +163,11 @@
   </div>
 
   <div class="panel">
+    <div class="panel-label">가격 시뮬레이션 (선택)</div>
+    <input type="number" id="simPrice" placeholder="원하는 가격 입력 (예: 65000) · 비워두면 실시간 가격 사용">
+  </div>
+
+  <div class="panel">
     <div class="panel-label">텔레그램 텍스트 붙여넣기</div>
     <textarea id="input" placeholder="예)
 용1
@@ -172,6 +191,7 @@ TP : 62157 (800) 800
     <div class="err" id="errBox"></div>
   </div>
 
+  <div id="basisNote" class="price-src" style="display:none; margin-bottom:10px;"></div>
   <div id="results"></div>
 </div>
 
@@ -343,27 +363,27 @@ function getFeeRate(exch){
   return FEE_RATES.default;
 }
 
-function renderCard(pos, idx){
+function renderCard(pos, price){
   const dirClass = pos.direction === '롱' ? 'long' : 'short';
 
   const priceChangePct = pos.direction === '롱'
-    ? (currentPrice - pos.avg) / pos.avg
-    : (pos.avg - currentPrice) / pos.avg;
+    ? (price - pos.avg) / pos.avg
+    : (pos.avg - price) / pos.avg;
   const pnlAmount = priceChangePct * LEVERAGE * pos.marginUsed;
   const pnlPct = priceChangePct * LEVERAGE * 100;
   const pnlUp = pnlAmount >= 0;
 
   let liqDistPct = pos.direction === '롱'
-    ? (currentPrice - pos.liq) / currentPrice * 100
-    : (pos.liq - currentPrice) / currentPrice * 100;
+    ? (price - pos.liq) / price * 100
+    : (pos.liq - price) / price * 100;
   liqDistPct = Math.max(0, Math.min(100, liqDistPct));
   const barColor = liqDistPct < 5 ? 'var(--red)' : liqDistPct < 15 ? 'var(--brass)' : 'var(--green)';
 
-  // 수수료 계산: notional = 증거금 x 레버리지 (진입가 기준), 청산(종료) notional은 현재가 기준으로 환산
+  // 수수료 계산: notional = 증거금 x 레버리지 (진입가 기준), 청산(종료) notional은 적용가 기준으로 환산
   const feeRate = getFeeRate(pos.exch);
   const qty = (pos.marginUsed * LEVERAGE) / pos.avg; // BTC 수량
   const entryFee = qty * pos.avg * feeRate;
-  const exitFee = qty * currentPrice * feeRate;
+  const exitFee = qty * price * feeRate;
   const totalFee = entryFee + exitFee;
 
   const tpDisplay = pos.tp !== null ? won(pos.tp) : '-';
@@ -412,20 +432,35 @@ function renderCard(pos, idx){
 document.getElementById('parseBtn').addEventListener('click', () => {
   const errBox = document.getElementById('errBox');
   const resultsBox = document.getElementById('results');
+  const basisNote = document.getElementById('basisNote');
   errBox.style.display = 'none';
   resultsBox.style.display = 'none';
   resultsBox.innerHTML = '';
+  basisNote.style.display = 'none';
 
-  if(currentPrice === null){
-    errBox.textContent = '현재가를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
-    errBox.style.display = 'block';
-    return;
+  const simInput = document.getElementById('simPrice').value;
+  const simPrice = simInput.trim() !== '' ? parseFloat(simInput.replace(/,/g,'')) : null;
+
+  let basisPrice;
+  if(simPrice !== null && !isNaN(simPrice) && simPrice > 0){
+    basisPrice = simPrice;
+    basisNote.textContent = `시뮬레이션 적용가: $${basisPrice.toLocaleString('en-US')} (직접 입력)`;
+    basisNote.style.display = 'block';
+  }else{
+    if(currentPrice === null){
+      errBox.textContent = '현재가를 아직 불러오는 중입니다. 잠시 후 다시 시도해주세요.';
+      errBox.style.display = 'block';
+      return;
+    }
+    basisPrice = currentPrice;
+    basisNote.textContent = `적용가: $${basisPrice.toLocaleString('en-US')} (실시간 가격)`;
+    basisNote.style.display = 'block';
   }
 
   try{
     const text = document.getElementById('input').value;
     const positions = parseText(text);
-    resultsBox.innerHTML = positions.map(renderCard).join('');
+    resultsBox.innerHTML = positions.map(pos => renderCard(pos, basisPrice)).join('');
     resultsBox.style.display = 'block';
   }catch(e){
     errBox.textContent = e.message;
