@@ -210,6 +210,8 @@ function setPrice(p, src){
   currentPrice = p;
   priceEl.textContent = '$' + p.toLocaleString('en-US', {maximumFractionDigits:1});
   srcEl.textContent = src + ' · ' + new Date().toLocaleTimeString('ko-KR');
+  const active = document.activeElement;
+  if(active && active.classList && active.classList.contains('water-pct-input')) return;
   if(lastPositions) renderTable(lastPositions);
 }
 
@@ -412,6 +414,7 @@ function parseText(text){
 
 let lastPositions = null;
 let posByUid = {};
+let waterPctOverrides = {};
 
 const LEVERAGE = 50;
 
@@ -484,7 +487,7 @@ function renderTable(positions){
         : (pos.liq - currentPrice) / currentPrice * 100;
     }
 
-    const water = computeWaterCalc(pos, 3);
+    const water = computeWaterCalc(pos, waterPctOverrides[pos.uid] || 3);
 
     return { ...pos, tpDistPct, targetPct, pnlAmount, pnlPct, liqDistPct, ...water };
   });
@@ -589,6 +592,7 @@ document.getElementById('resultBody').addEventListener('input', (e) => {
 
   const pctVal = parseFloat(e.target.value);
   const pct = (!isNaN(pctVal) && pctVal > 0) ? pctVal : 3;
+  waterPctOverrides[uid] = pct;
   const water = computeWaterCalc(pos, pct);
 
   const priceEl2 = document.getElementById('waterPriceVal-' + uidSafe);
