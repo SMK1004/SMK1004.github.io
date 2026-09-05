@@ -532,6 +532,7 @@ function renderPositions(){
             <select id="action_${id}">
               <option value="margin_add">증거금 추가</option>
               <option value="add_position">물타기/불타기 (시장가 진입)</option>
+              <option value="reduce_position">물빼기 (일부 시장가 종료)</option>
             </select>
           </div>
           <div class="f">
@@ -575,19 +576,38 @@ function calculate(id){
   const resultBox = document.getElementById(`result_${id}`);
   const formulaBox = document.getElementById(`formula_${id}`);
 
-  if(action === 'add_position' && currentPrice === null){
+  if((action === 'add_position' || action === 'reduce_position') && currentPrice === null){
     toast('현재가를 입력해주세요');
     return;
   }
 
   let newMargin = margin, newAvg = avgPrice, newUsedMargin = usedMargin;
   let formulaLines = [];
+  let realizedPnL = null;
 
   if(action === 'margin_add'){
     newMargin = margin + amount;
     newAvg = avgPrice;
     formulaLines.push(`증거금 추가: ${margin} + ${amount} = ${newMargin} USDT`);
     formulaLines.push(`평단 변화 없음 (포지션 수량 불변)`);
+  } else if(action === 'reduce_position'){
+    if(usedMargin <= 0){ toast('포지션 진입금액(사용증거금)이 필요합니다'); return; }
+    if(amount <= 0){ toast('물뺄 금액(USDT)을 입력해주세요'); return; }
+    if(amount > usedMargin){ toast('물뺄 금액이 사용증거금보다 클 수 없습니다'); return; }
+
+    const dirSign = ex.direction === 'long' ? 1 : -1;
+    const removedQty = (amount * LEVERAGE) / avgPrice;
+    realizedPnL = removedQty * (currentPrice - avgPrice) * dirSign;
+
+    newUsedMargin = usedMargin - amount;
+    newAvg = avgPrice; // 남은 포지션의 평단은 변하지 않음 (비례 축소이므로)
+    newMargin = margin + realizedPnL; // 실현손익이 실제 계좌 잔고(충)에 반영됨
+
+    formulaLines.push(`물뺄 수량 = ${amount} × ${LEVERAGE} / ${avgPrice} = ${removedQty.toFixed(6)} BTC`);
+    formulaLines.push(`실현손익 = ${removedQty.toFixed(6)} × (${currentPrice} - ${avgPrice}) × ${dirSign>0?'1(롱)':'-1(숏)'} = ${realizedPnL.toFixed(2)} USDT`);
+    formulaLines.push(`남은 사용증거금 = ${usedMargin} - ${amount} = ${newUsedMargin.toFixed(2)} USDT`);
+    formulaLines.push(`새 총 증거금(충) = 기존 ${margin} + 실현손익 ${realizedPnL.toFixed(2)} = ${newMargin.toFixed(2)} USDT`);
+    formulaLines.push(`평단 변화 없음 (남은 포지션은 기존 평단 그대로 유지)`);
   } else {
     if(usedMargin <= 0){ toast('포지션 진입금액(사용증거금)이 필요합니다'); return; }
     const oldPositionSize = (usedMargin * LEVERAGE) / avgPrice;
@@ -604,6 +624,7 @@ function calculate(id){
   const newLiq = calcLiq(newAvg, newMargin, newUsedMargin, ex.direction, mmr);
   const notional = newUsedMargin * LEVERAGE;
   const entryFee = amount>0 && action==='add_position' ? (amount*LEVERAGE*taker) : 0;
+  const reduceFee = amount>0 && action==='reduce_position' ? (amount*LEVERAGE*taker) : 0;
   const totalEntryFee = notional * taker;
   const exitFee = notional * taker;
   const totalFee = totalEntryFee + exitFee;
@@ -613,11 +634,13 @@ function calculate(id){
 
   resultBox.classList.add('show');
   resultBox.innerHTML = `
+    ${action==='reduce_position' ? `<div class="rline"><span>실현손익</span><span style="color:${realizedPnL>=0?'#4ade80':'#f87171'};">${realizedPnL>=0?'+':''}${fmt(realizedPnL,2)} USDT</span></div>` : ''}
     <div class="rline"><span>변경 평단</span><span style="color:#4ade80;">${fmt(newAvg,1)} USDT</span></div>
     <div class="rline"><span>변경 청산가</span><span style="color:#f87171;">${fmt(newLiq,1)} USDT</span></div>
     <div class="rline"><span>총 증거금</span><span>${fmt(newMargin,1)} USDT</span></div>
     <div class="rline"><span>사용 증거금(포지션 진입금액)</span><span>${fmt(newUsedMargin,1)} USDT</span></div>
     ${action==='add_position' ? `<div class="rline"><span>추가 진입 수수료(근사)</span><span>${fmt(entryFee,2)} USDT</span></div>` : ''}
+    ${action==='reduce_position' ? `<div class="rline"><span>물빼기 종료 수수료(근사)</span><span>${fmt(reduceFee,2)} USDT</span></div>` : ''}
     <div class="rline"><span>전체 진입 수수료(근사)</span><span>${fmt(totalEntryFee,2)} USDT</span></div>
     <div class="rline"><span>예상 종료 수수료(근사)</span><span>${fmt(exitFee,2)} USDT</span></div>
     <div class="rline" style="border-top:1px solid var(--line-soft);margin-top:6px;padding-top:8px;"><span style="color:var(--brass);">총 수수료 (진입+종료 왕복)</span><span style="color:var(--brass);">${fmt(totalFee,2)} USDT</span></div>
