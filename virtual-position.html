@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>첫진입가상포지션 · SMK1004</title>
+<style>
+:root{
+  --bg:#0e1013;--panel:#15181c;--panel2:#1a1e23;--line:#262b31;
+  --line-soft:#1e2328;--text:#eceff1;--sub:#838d97;--sub2:#5c656e;
+  --brass:#c9a466;--brass-dim:#8a7247;--long:#4fae9c;--short:#c1594a;
+  --mono:'Pretendard','SFMono-Regular',Consolas,monospace;
+  --sans:'Pretendard',-apple-system,BlinkMacSystemFont,'Malgun Gothic',sans-serif;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+ padding:28px 18px 70px;
+ background-image:radial-gradient(ellipse 900px 400px at 50% -10%,rgba(201,164,102,.05),transparent);
+}
+.wrap{max-width:760px;margin:0 auto}
+.nav{display:flex;gap:10px;margin-bottom:18px;font-family:var(--mono);font-size:14px}
+.nav a{color:var(--sub);text-decoration:none}.nav a:hover{color:var(--brass)}
+header{padding-bottom:20px;border-bottom:1px solid var(--line-soft);margin-bottom:18px}
+.eyebrow{font-family:var(--mono);font-size:15px;letter-spacing:.08em;color:var(--brass);margin-bottom:9px}
+h1{font-size:34px;font-weight:600;margin:0 0 7px;color:#f4f1ea}
+header p{margin:0;color:var(--sub);line-height:1.6}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:14px}
+.card h2{font-family:var(--mono);font-size:16px;color:var(--sub);letter-spacing:.08em;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field.full{grid-column:1/-1}
+label{font-size:14px;color:var(--sub2);font-weight:600}
+input,select{
+ width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;
+ color:var(--text);padding:12px 13px;font-family:var(--mono);font-size:17px;
+}
+input:focus,select:focus{outline:none;border-color:var(--brass-dim)}
+input[readonly]{opacity:.72}
+.direction{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.direction button{
+ border:1px solid var(--line);background:var(--panel2);color:var(--sub);
+ border-radius:7px;padding:12px;font-weight:700;cursor:pointer
+}
+.direction button.active.long{border-color:rgba(79,174,156,.55);color:var(--long);background:rgba(79,174,156,.08)}
+.direction button.active.short{border-color:rgba(193,89,74,.55);color:var(--short);background:rgba(193,89,74,.08)}
+.entry{
+ background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:13px;margin-bottom:10px
+}
+.entry-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.entry-title{font-weight:700;color:var(--brass)}
+.remove{border:1px solid var(--line);background:transparent;color:var(--sub);border-radius:5px;padding:5px 9px;cursor:pointer}
+.remove:hover{color:var(--short);border-color:var(--short)}
+.entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.add-btn,.calc-btn{
+ border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:7px;
+ padding:11px 15px;cursor:pointer;font-weight:700
+}
+.add-btn:hover{border-color:var(--brass-dim);color:var(--brass)}
+.calc-btn{background:var(--brass);border-color:var(--brass);color:#14100a;width:100%;font-size:18px;margin-top:5px}
+.calc-btn:hover{filter:brightness(1.08)}
+.tp-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tp-note{margin-top:8px;color:var(--sub2);font-size:13px;line-height:1.5}
+.result{display:none;background:var(--bg);border:1px solid var(--line);border-left:3px solid var(--brass);border-radius:8px;padding:15px 16px}
+.result.show{display:block}
+.rline{display:flex;justify-content:space-between;gap:16px;padding:6px 0;border-bottom:1px solid var(--line-soft)}
+.rline:last-child{border-bottom:0}
+.rline span:first-child{color:var(--sub)}
+.rline strong{font-family:var(--mono)}
+.highlight{color:var(--brass)}
+.long-text{color:var(--long)}.short-text{color:var(--short)}
+.error{color:#f87171;margin-top:10px;font-size:14px}
+.small{font-size:13px;color:var(--sub2);line-height:1.6;margin-top:12px}
+@media(max-width:620px){
+ body{padding:20px 13px 55px}
+ h1{font-size:29px}.grid,.tp-row,.entry-grid{grid-template-columns:1fr}
+ .field.full{grid-column:auto}
+ .card{padding:15px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav"><a href="index.html">🏠 홈</a><span style="color:var(--line)">·</span><a href="calculator.html">🧮 포지션 계산기</a></div>
+
+  <header>
+    <div class="eyebrow">BTC · USDT 무기한 · 교차 50배 · 가상 시뮬레이션</div>
+    <h1>첫진입가상포지션</h1>
+    <p>첫 진입과 추가진입을 입력하면 최종 평단·예상 청산가를 계산합니다. TP 가격과 목표 수익금은 서로 자동 계산됩니다.</p>
+  </header>
+
+  <div class="card">
+    <h2>기본 설정</h2>
+    <div class="grid">
+      <div class="field">
+        <label>거래소</label>
+        <select id="exchange" onchange="updateMmr()">
+          <option value="비트유닉스">비트유닉스</option>
+          <option value="디지파이넥스">디지파이넥스</option>
+          <option value="비트겟">비트겟</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>레버리지</label>
+        <input value="50배 (고정)" readonly>
+      </div>
+      <div class="field full">
+        <label>방향</label>
+        <div class="direction">
+          <button id="longBtn" class="active long" onclick="setDirection('long')">롱</button>
+          <button id="shortBtn" class="short" onclick="setDirection('short')">숏</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>유지증거금율(MMR)</label>
+        <input id="mmr" value="0.400%" readonly>
+      </div>
+      <div class="field">
+        <label>계산 기준</label>
+        <input value="수수료 미반영" readonly>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>진입 입력</h2>
+    <div id="entries"></div>
+    <button class="add-btn" onclick="addEntry()">＋ 추가진입 입력</button>
+    <div class="small">추가진입은 각 진입가격에서 입력한 USDT를 50배 포지션으로 진입하는 것으로 계산합니다. 추가진입이 없으면 첫 진입만으로 계산합니다.</div>
+  </div>
+
+  <div class="card">
+    <h2>TP 설정</h2>
+    <div class="tp-row">
+      <div class="field">
+        <label>TP 가격</label>
+        <input id="tpPrice" type="text" inputmode="decimal" placeholder="예: 65000" oninput="tpPriceChanged()">
+      </div>
+      <div class="field">
+        <label>목표 수익금 (USDT)</label>
+        <input id="tpProfit" type="text" inputmode="decimal" placeholder="예: 500" oninput="tpProfitChanged()">
+      </div>
+    </div>
+    <div class="tp-note">둘 중 하나를 입력하면 다른 한쪽이 자동 계산됩니다. 목표 수익금은 수수료를 제외한 단순 가격차익 기준입니다.</div>
+  </div>
+
+  <div class="card">
+    <button class="calc-btn" onclick="calculate()">계산하기</button>
+    <div id="error" class="error"></div>
+  </div>
+
+  <div id="result" class="result"></div>
+</div>
+
+<script>
+const EXCHANGE_DEFAULTS={
+  '비트유닉스':{mmr:0.004},
+  '디지파이넥스':{mmr:0.005},
+  '비트겟':{mmr:0.004}
+};
+const LEVERAGE=50;
+let direction='long';
+let entryCount=0;
+let tpLock=false;
+
+function num(v){
+  if(v===undefined||v===null) return null;
+  const n=parseFloat(String(v).replace(/,/g,'').trim());
+  return Number.isFinite(n)?n:null;
+}
+function fmt(n,d=1){
+  if(!Number.isFinite(n)) return '-';
+  return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+}
+function updateMmr(){
+  document.getElementById('mmr').value=(EXCHANGE_DEFAULTS[document.getElementById('exchange').value].mmr*100).toFixed(3)+'%';
+}
+function setDirection(dir){
+  direction=dir;
+  document.getElementById('longBtn').classList.toggle('active',dir==='long');
+  document.getElementById('shortBtn').classList.toggle('active',dir==='short');
+}
+function addEntry(){
+  entryCount++;
+  const n=entryCount;
+  const div=document.createElement('div');
+  div.className='entry';
+  div.id='entry_'+n;
+  div.innerHTML=`
+    <div class="entry-head">
+      <div class="entry-title">${n===1?'첫 진입':'추가 진입 '+(n-1)}</div>
+      ${n>1?`<button class="remove" onclick="removeEntry(${n})">삭제</button>`:''}
+    </div>
+    <div class="entry-grid">
+      <div class="field">
+        <label>진입가격</label>
+        <input id="entryPrice_${n}" type="text" inputmode="decimal" placeholder="예: 64000" oninput="syncTp()">
+      </div>
+      <div class="field">
+        <label>${n===1?'진입 증거금':'추가진입 금액'} (USDT)</label>
+        <input id="entryMargin_${n}" type="text" inputmode="decimal" placeholder="예: 1000" oninput="syncTp()">
+      </div>
+    </div>`;
+  document.getElementById('entries').appendChild(div);
+}
+function removeEntry(n){
+  const el=document.getElementById('entry_'+n);
+  if(el) el.remove();
+  syncTp();
+}
+function getEntries(){
+  return [...document.querySelectorAll('.entry')].map(el=>{
+    const n=el.id.split('_')[1];
+    return {price:num(document.getElementById('entryPrice_'+n).value),margin:num(document.getElementById('entryMargin_'+n).value)};
+  }).filter(x=>x.price!==null&&x.margin!==null&&x.price>0&&x.margin>0);
+}
+function calcBase(){
+  const entries=getEntries();
+  if(!entries.length) return null;
+  let qty=0, cost=0, margin=0;
+  for(const e of entries){
+    const q=(e.margin*LEVERAGE)/e.price;
+    qty+=q;
+    cost+=q*e.price;
+    margin+=e.margin;
+  }
+  const avg=cost/qty;
+  const mm=margin*LEVERAGE*EXCHANGE_DEFAULTS[document.getElementById('exchange').value].mmr;
+  const liq=direction==='long'
+    ? avg-(margin-mm)/qty
+    : avg+(margin-mm)/qty;
+  return {entries,qty,avg,margin,mm,liq};
+}
+function profitAt(tp,base){
+  if(!base||tp===null||tp<=0) return null;
+  return base.qty*(direction==='long' ? tp-base.avg : base.avg-tp);
+}
+function tpForProfit(target,base){
+  if(!base||target===null||target<0||base.qty<=0) return null;
+  return direction==='long'
+    ? base.avg+target/base.qty
+    : base.avg-target/base.qty;
+}
+function tpPriceChanged(){
+  if(tpLock) return;
+  const tp=num(document.getElementById('tpPrice').value);
+  const base=calcBase();
+  if(!base||tp===null) return;
+  const profit=profitAt(tp,base);
+  if(profit===null||profit<0) return;
+  tpLock=true;
+  document.getElementById('tpProfit').value=profit.toFixed(2);
+  tpLock=false;
+}
+function tpProfitChanged(){
+  if(tpLock) return;
+  const target=num(document.getElementById('tpProfit').value);
+  const base=calcBase();
+  if(!base||target===null||target<0) return;
+  const tp=tpForProfit(target,base);
+  tpLock=true;
+  document.getElementById('tpPrice').value=tp.toFixed(1);
+  tpLock=false;
+}
+function syncTp(){
+  const tp=document.getElementById('tpPrice').value;
+  const target=document.getElementById('tpProfit').value;
+  if(tp) tpPriceChanged();
+  else if(target) tpProfitChanged();
+}
+function calculate(){
+  const error=document.getElementById('error');
+  error.textContent='';
+  const base=calcBase();
+  if(!base){error.textContent='진입가격과 진입 증거금을 최소 1개 입력해주세요.';return;}
+  const tp=num(document.getElementById('tpPrice').value);
+  const target=num(document.getElementById('tpProfit').value);
+  let finalTp=tp;
+  if(finalTp===null&&target!==null) finalTp=tpForProfit(target,base);
+  if(finalTp!==null){
+    const p=profitAt(finalTp,base);
+    if(p===null){error.textContent='TP 값을 확인해주세요.';return;}
+    if((direction==='long'&&finalTp<=base.avg)||(direction==='short'&&finalTp>=base.avg)){
+      error.textContent='TP는 수익 방향의 가격으로 입력해주세요.';
+      return;
+    }
+    tpLock=true;
+    document.getElementById('tpPrice').value=finalTp.toFixed(1);
+    document.getElementById('tpProfit').value=p.toFixed(2);
+    tpLock=false;
+  }
+  const mmr=EXCHANGE_DEFAULTS[document.getElementById('exchange').value].mmr;
+  const dist=Math.abs(base.avg-base.liq)/base.avg*100;
+  const tpProfitValue=finalTp!==null?profitAt(finalTp,base):null;
+  const tpDistance=finalTp!==null?Math.abs(finalTp-base.avg)/base.avg*100:null;
+  const dirClass=direction==='long'?'long-text':'short-text';
+  document.getElementById('result').innerHTML=`
+    <div class="rline"><span>방향</span><strong class="${dirClass}">${direction==='long'?'롱':'숏'}</strong></div>
+    <div class="rline"><span>총 진입금액(사용증거금)</span><strong>${fmt(base.margin,2)} USDT</strong></div>
+    <div class="rline"><span>포지션 수량</span><strong>${base.qty.toFixed(6)} BTC</strong></div>
+    <div class="rline"><span>최종 평단</span><strong class="highlight">${fmt(base.avg,1)} USDT</strong></div>
+    <div class="rline"><span>예상 청산가</span><strong class="short-text">${fmt(base.liq,1)} USDT</strong></div>
+    <div class="rline"><span>청산까지 거리</span><strong>${dist.toFixed(2)}%</strong></div>
+    <div class="rline"><span>적용 MMR</span><strong>${(mmr*100).toFixed(3)}%</strong></div>
+    ${finalTp!==null?`
+      <div class="rline"><span>TP 가격</span><strong class="highlight">${fmt(finalTp,1)} USDT</strong></div>
+      <div class="rline"><span>TP까지 거리</span><strong>${tpDistance.toFixed(2)}%</strong></div>
+      <div class="rline"><span>예상 수익금</span><strong class="long-text">+${fmt(tpProfitValue,2)} USDT</strong></div>
+    `:'<div class="rline"><span>TP</span><strong>입력하지 않음</strong></div>'}
+  `;
+  document.getElementById('result').classList.add('show');
+}
+addEntry();
+updateMmr();
+</script>
+</body>
+</html>

@@ -6,64 +6,22 @@
 <title>SMK1004</title>
 <style>
   :root{
-    --bg:#0e1013;
-    --panel:#15181c;
-    --panel2:#1a1e23;
-    --line:#262b31;
-    --text:#eceff1;
-    --sub:#838d97;
-    --brass:#c9a466;
-    --sans: 'Inter', -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
-    --serif: 'Fraunces', Georgia, serif;
+    --bg:#0e1013;--panel:#15181c;--panel2:#1a1e23;--line:#262b31;
+    --text:#eceff1;--sub:#838d97;--brass:#c9a466;
+    --sans:'Inter',-apple-system,'Segoe UI','Malgun Gothic',sans-serif;
+    --serif:'Fraunces',Georgia,serif;
   }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    min-height:100vh;
-    background:var(--bg);
-    color:var(--text);
-    font-family:var(--sans);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-  }
-  .wrap{max-width:640px; width:100%;}
-  h1{
-    font-family:var(--serif);
-    font-size:32px;
-    font-weight:500;
-    margin:0 0 8px;
-    color:#f4f1ea;
-  }
-  .sub{color:var(--sub); margin:0 0 32px; font-size:15px;}
-  .cards{display:grid; gap:14px;}
-  a.card{
-    display:flex;
-    align-items:center;
-    gap:16px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:20px;
-    text-decoration:none;
-    color:var(--text);
-    transition:border-color .15s ease, transform .15s ease;
-  }
-  a.card:hover{
-    border-color:var(--brass);
-    transform:translateY(-2px);
-  }
-  .icon{
-    font-size:28px;
-    width:48px; height:48px;
-    display:flex; align-items:center; justify-content:center;
-    background:var(--panel2);
-    border-radius:10px;
-    flex-shrink:0;
-  }
-  .card-title{font-size:18px; font-weight:600; margin-bottom:4px;}
-  .card-desc{font-size:14px; color:var(--sub);}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--sans);display:flex;align-items:center;justify-content:center;padding:24px}
+  .wrap{max-width:640px;width:100%}
+  h1{font-family:var(--serif);font-size:32px;font-weight:500;margin:0 0 8px;color:#f4f1ea}
+  .sub{color:var(--sub);margin:0 0 32px;font-size:15px}
+  .cards{display:grid;gap:14px}
+  a.card{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;text-decoration:none;color:var(--text);transition:border-color .15s ease,transform .15s ease}
+  a.card:hover{border-color:var(--brass);transform:translateY(-2px)}
+  .icon{font-size:28px;width:48px;height:48px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border-radius:10px;flex-shrink:0}
+  .card-title{font-size:18px;font-weight:600;margin-bottom:4px}
+  .card-desc{font-size:14px;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -73,30 +31,25 @@
   <div class="cards">
     <a class="card" href="calculator.html">
       <div class="icon">🧮</div>
-      <div>
-        <div class="card-title">포지션 계산기</div>
-        <div class="card-desc">실시간 가격 · 청산가 계산 · 물타기/불타기 시뮬레이션</div>
-      </div>
+      <div><div class="card-title">포지션 계산기</div><div class="card-desc">실시간 가격 · 청산가 계산 · 물타기/불타기 시뮬레이션</div></div>
     </a>
     <a class="card" href="economic-calendar.html">
       <div class="icon">📅</div>
-      <div>
-        <div class="card-title">경제 캘린더</div>
-        <div class="card-desc">이번 주 경제지표 발표 일정 · 중요도 필터 · 한국시간</div>
-      </div>
+      <div><div class="card-title">경제 캘린더</div><div class="card-desc">이번 주 경제지표 발표 일정 · 중요도 필터 · 한국시간</div></div>
     </a>
     <a class="card" href="profit-check.html">
       <div class="icon">💰</div>
-      <div>
-        <div class="card-title">수익 확인</div>
-        <div class="card-desc">텔레그램 포지션 붙여넣기 · 실시간 손익 계산</div>
-      </div>
+      <div><div class="card-title">수익 확인</div><div class="card-desc">텔레그램 포지션 붙여넣기 · 실시간 손익 계산</div></div>
     </a>
     <a class="card" href="tp-overview.html">
       <div class="icon">🎯</div>
+      <div><div class="card-title">포지션 한눈에</div><div class="card-desc">세트별 손익 · 익절/청산 거리 · 물타기 계산</div></div>
+    </a>
+    <a class="card" href="virtual-position.html">
+      <div class="icon">🧪</div>
       <div>
-        <div class="card-title">포지션 한눈에</div>
-        <div class="card-desc">세트별 손익 · 익절/청산 거리 · 물타기 계산</div>
+        <div class="card-title">첫진입가상포지션</div>
+        <div class="card-desc">첫 진입 · 추가진입 · 예상 청산가 · TP 목표수익 계산</div>
       </div>
     </a>
   </div>
