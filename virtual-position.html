@@ -111,6 +111,10 @@ input[readonly]{opacity:.72}
           <button id="shortBtn" class="short" onclick="setDirection('short')">숏</button>
         </div>
       </div>
+      <div class="field full">
+        <label>총 마진 (USDT)</label>
+        <input id="totalMargin" type="text" inputmode="decimal" placeholder="예: 10000" oninput="syncTp()">
+      </div>
       <div class="field">
         <label>유지증거금율(MMR)</label>
         <input id="mmr" value="0.400%" readonly>
@@ -126,7 +130,7 @@ input[readonly]{opacity:.72}
     <h2>진입 입력</h2>
     <div id="entries"></div>
     <button class="add-btn" onclick="addEntry()">＋ 추가진입 입력</button>
-    <div class="small">추가진입은 각 진입가격에서 입력한 USDT를 50배 포지션으로 진입하는 것으로 계산합니다. 추가진입이 없으면 첫 진입만으로 계산합니다.</div>
+    <div class="small">총 마진은 크로스 계좌에 넣어둔 전체 증거금입니다. 각 진입의 증거금은 그 총 마진 중 실제 포지션에 투입하는 금액이며, 50배로 포지션 규모를 계산합니다. 예: 총 마진 10,000 USDT에서 첫 진입 1,000 USDT.</div>
   </div>
 
   <div class="card">
@@ -216,27 +220,32 @@ function getEntries(){
 }
 function calcBase(){
   const entries=getEntries();
+  const totalMargin=num(document.getElementById('totalMargin').value);
   if(!entries.length) return null;
-  let qty=0, cost=0, margin=0;
+  if(totalMargin===null || totalMargin<=0) return {error:'총 마진(USDT)을 입력해주세요.'};
+  let qty=0, cost=0, usedMargin=0;
   for(const e of entries){
     const q=(e.margin*LEVERAGE)/e.price;
     qty+=q;
     cost+=q*e.price;
-    margin+=e.margin;
+    usedMargin+=e.margin;
   }
+  if(totalMargin < usedMargin) return {error:`총 마진은 전체 진입 증거금(${fmt(usedMargin,2)} USDT)보다 작을 수 없습니다.`};
   const avg=cost/qty;
-  const mm=margin*LEVERAGE*EXCHANGE_DEFAULTS[document.getElementById('exchange').value].mmr;
+  const mm=usedMargin*LEVERAGE*EXCHANGE_DEFAULTS[document.getElementById('exchange').value].mmr;
+  // Cross margin: total wallet margin is available to absorb unrealized loss.
+  // Maintenance margin is based on the current position notional (used margin × leverage).
   const liq=direction==='long'
-    ? avg-(margin-mm)/qty
-    : avg+(margin-mm)/qty;
-  return {entries,qty,avg,margin,mm,liq};
+    ? avg-(totalMargin-mm)/qty
+    : avg+(totalMargin-mm)/qty;
+  return {entries,qty,avg,usedMargin,totalMargin,mm,liq};
 }
 function profitAt(tp,base){
-  if(!base||tp===null||tp<=0) return null;
+  if(!base||base.error||tp===null||tp<=0) return null;
   return base.qty*(direction==='long' ? tp-base.avg : base.avg-tp);
 }
 function tpForProfit(target,base){
-  if(!base||target===null||target<0||base.qty<=0) return null;
+  if(!base||base.error||target===null||target<0||base.qty<=0) return null;
   return direction==='long'
     ? base.avg+target/base.qty
     : base.avg-target/base.qty;
@@ -272,7 +281,8 @@ function calculate(){
   const error=document.getElementById('error');
   error.textContent='';
   const base=calcBase();
-  if(!base){error.textContent='진입가격과 진입 증거금을 최소 1개 입력해주세요.';return;}
+  if(!base){error.textContent='총 마진과 진입가격/진입 증거금을 입력해주세요.';return;}
+  if(base.error){error.textContent=base.error;return;}
   const tp=num(document.getElementById('tpPrice').value);
   const target=num(document.getElementById('tpProfit').value);
   let finalTp=tp;
@@ -296,7 +306,9 @@ function calculate(){
   const dirClass=direction==='long'?'long-text':'short-text';
   document.getElementById('result').innerHTML=`
     <div class="rline"><span>방향</span><strong class="${dirClass}">${direction==='long'?'롱':'숏'}</strong></div>
-    <div class="rline"><span>총 진입금액(사용증거금)</span><strong>${fmt(base.margin,2)} USDT</strong></div>
+    <div class="rline"><span>총 마진(크로스)</span><strong>${fmt(base.totalMargin,2)} USDT</strong></div>
+    <div class="rline"><span>사용 증거금(총 진입금액)</span><strong>${fmt(base.usedMargin,2)} USDT</strong></div>
+    <div class="rline"><span>남은 크로스 마진</span><strong>${fmt(base.totalMargin-base.usedMargin,2)} USDT</strong></div>
     <div class="rline"><span>포지션 수량</span><strong>${base.qty.toFixed(6)} BTC</strong></div>
     <div class="rline"><span>최종 평단</span><strong class="highlight">${fmt(base.avg,1)} USDT</strong></div>
     <div class="rline"><span>예상 청산가</span><strong class="short-text">${fmt(base.liq,1)} USDT</strong></div>
